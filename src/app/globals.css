@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-sans: var(--font-inter), sans-serif;
+  --font-mono: var(--font-fira-code), monospace;
+  --font-poppins: var(--font-poppins), sans-serif;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@layer utilities {
+  .animate-meet-left {
+    animation: slideInLeft 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .animate-meet-right {
+    animation: slideInRight 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  @keyframes slideInLeft {
+    from {
+      transform: translateX(-50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.2);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 150, 150, 0.4);
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 229, 255, 0.3);
+    border-radius: 4px;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 229, 255, 0.6);
+  }
+}

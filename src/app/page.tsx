@@ -1,0 +1,205 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { useAppContext } from "@/context/AppContext";
+
+import LoadingOverlay from "@/components/custom/LoadingOverlay";
+import Input from "@/components/custom/Input";
+import RefactoredOutput from "@/components/custom/RefactoredOutput";
+import Terminal from "@/components/custom/Terminal";
+
+const INITIAL_SOURCE = ``; 
+
+const INITIAL_REFACTORED = `/** Refactored Calculator with improved organization */
+public class Calculator {
+    // Performs arithmetic addition
+    public int performAddition(int firstOperand, int secondOperand) {
+        return computeSum(firstOperand, secondOperand);
+    }
+
+    // Performs arithmetic subtraction
+    public int performSubtraction(int firstOperand, int secondOperand) {
+        return computeDifference(firstOperand, secondOperand);
+    }
+
+    // Helper: calculates sum
+    private int computeSum(int a, int b) {
+        return a + b;
+    }
+
+    // Helper: calculates difference
+    private int computeDifference(int a, int b) {
+        return a - b;
+    }
+}`;
+
+export default function Home() {
+  const { appState, setAppState } = useAppContext();
+  const { resolvedTheme } = useTheme();
+  
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [sourceCode, setSourceCode] = useState(INITIAL_SOURCE);
+  const [refactoredOutput, setRefactoredOutput] = useState("");
+  const [activeStep, setActiveStep] = useState(0);
+  const [showFlowchartModal, setShowFlowchartModal] = useState(false);
+  const [inputInstruction, setInputInstruction] = useState("");
+  const [inputError, setInputError] = useState(false);
+  const [sourceError, setSourceError] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(false);
+  
+  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted ? resolvedTheme === "dark" : true;
+
+  useEffect(() => {
+    if (!isTerminalCollapsed) {
+      terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [activeStep, isTerminalCollapsed]);
+
+  // Auto-expanding chatbox logic - handles smooth transition from Pill to Rounded Rectangle
+  useEffect(() => {
+    if (chatInputRef.current) {
+      chatInputRef.current.style.height = '40px'; 
+      const scrollHeight = chatInputRef.current.scrollHeight;
+      chatInputRef.current.style.height = Math.min(scrollHeight, 140) + 'px'; 
+      
+      // Expand radius smoothly if content exceeds standard one-line height
+      setIsChatExpanded(scrollHeight > 45); 
+    }
+  }, [inputInstruction]);
+
+  const startAnalysis = () => {
+    let hasError = false;
+
+    if (!sourceCode.trim()) {
+      setSourceError(true);
+      hasError = true;
+    } else {
+      setSourceError(false);
+    }
+    
+    if (!inputInstruction.trim()) {
+      setInputError(true);
+      hasError = true;
+    } else {
+      setInputError(false);
+    }
+
+    if (hasError) return;
+
+    // Instantly clear the prompt, reset height and shape for visual confirmation
+    setInputInstruction("");
+    setInputError(false);
+    setSourceError(false);
+    setIsChatExpanded(false);
+    
+    if (chatInputRef.current) {
+      chatInputRef.current.style.height = '40px';
+    }
+
+    if (appState === 'analyzing') return;
+    setAppState('analyzing');
+    setShowFlowchartModal(true);
+    setActiveStep(1); 
+    setRefactoredOutput(""); 
+    
+    timeoutRefs.current.forEach(clearTimeout);
+    timeoutRefs.current = [];
+
+    timeoutRefs.current.push(setTimeout(() => setActiveStep(2), 2000));
+    timeoutRefs.current.push(setTimeout(() => setActiveStep(3), 4500));
+    timeoutRefs.current.push(setTimeout(() => setActiveStep(4), 7000));
+    timeoutRefs.current.push(setTimeout(() => {
+      setActiveStep(5);
+      setRefactoredOutput(INITIAL_REFACTORED);
+      timeoutRefs.current.push(setTimeout(() => {
+        setAppState('done');
+        setShowFlowchartModal(false);
+      }, 1500));
+    }, 9500));
+  };
+
+  const stopAnalysis = () => {
+    timeoutRefs.current.forEach(clearTimeout);
+    timeoutRefs.current = [];
+    setAppState('idle');
+    setActiveStep(0);
+    setShowFlowchartModal(false);
+  };
+
+  if (!mounted) return null;
+
+  if (isInitializing) {
+    return <LoadingOverlay onComplete={() => setIsInitializing(false)} />;
+  }
+
+  return (
+    <>
+      {/* Ultra Premium Ambient Background */}
+      <div className="fixed inset-0 z-[-1] pointer-events-none">
+        <div className={`absolute inset-0 transition-colors duration-1000 ${isDark ? 'bg-[#000000]' : 'bg-[#FAFAFA]'}`}></div>
+        {isDark ? (
+          <>
+            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-cyan-900/20 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[150px]"></div>
+          </>
+        ) : (
+          <>
+            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-cyan-100/60 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[150px]"></div>
+          </>
+        )}
+      </div>
+
+      <main className="max-w-[1800px] mx-auto w-full flex-1 p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-hidden min-h-0 relative z-0">
+        
+        {/* LEFT COLUMN: Source Code & Floating Chatbox */}
+        <Input 
+          sourceCode={sourceCode}
+          setSourceCode={setSourceCode}
+          sourceError={sourceError}
+          setSourceError={setSourceError}
+          inputInstruction={inputInstruction}
+          setInputInstruction={setInputInstruction}
+          inputError={inputError}
+          setInputError={setInputError}
+          isChatExpanded={isChatExpanded}
+          setIsChatExpanded={setIsChatExpanded}
+          startAnalysis={startAnalysis}
+          stopAnalysis={stopAnalysis}
+          chatInputRef={chatInputRef}
+        />
+
+        {/* RIGHT COLUMN */}
+        <div className="flex flex-col h-full min-h-0 relative animate-meet-right gap-6">
+          <RefactoredOutput 
+            refactoredOutput={refactoredOutput}
+            setRefactoredOutput={setRefactoredOutput}
+            showFlowchartModal={showFlowchartModal}
+            setShowFlowchartModal={setShowFlowchartModal}
+            activeStep={activeStep}
+            isTerminalCollapsed={isTerminalCollapsed}
+          />
+
+          <Terminal 
+            activeStep={activeStep}
+            isTerminalCollapsed={isTerminalCollapsed}
+            setIsTerminalCollapsed={setIsTerminalCollapsed}
+            terminalEndRef={terminalEndRef}
+          />
+        </div>
+      </main>
+    </>
+  );
+}
