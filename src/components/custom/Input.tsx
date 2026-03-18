@@ -145,9 +145,9 @@ export default function Input({
 
             <div className="h-[40px] flex items-center shrink-0">
               {appState === 'analyzing' ? (
-                <button onClick={stopAnalysis} className={`h-[34px] px-5 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${isDark ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}><Square size={12} className="fill-current" /> Stop</button>
+                <button onClick={stopAnalysis} className={`h-[34px] px-5 rounded-full text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${isDark ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}><Square size={12} className="fill-current" /> Stop</button>
               ) : (
-                <button onClick={startAnalysis} className="h-[34px] px-6 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-full text-[13px] font-bold flex items-center gap-2 shadow-[0_4px_15px_rgba(0,229,255,0.25)] hover:shadow-[0_6px_20px_rgba(0,229,255,0.4)] transition-all duration-300"><Sparkles size={14} className="fill-current" /> Refactor</button>
+                <button onClick={startAnalysis} className="h-[34px] px-6 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-full text-[13px] font-bold flex items-center gap-2 shadow-[0_4px_15px_rgba(0,229,255,0.25)] hover:shadow-[0_6px_20px_rgba(0,229,255,0.4)] transition-all duration-300 cursor-pointer"><Sparkles size={14} className="fill-current" /> Refactor</button>
               )}
             </div>
           </div>

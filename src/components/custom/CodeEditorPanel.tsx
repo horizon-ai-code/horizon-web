@@ -130,7 +130,7 @@ export default function CodeEditorPanel({ value, onChange, placeholder, diffType
           onScroll={handleScroll}
           spellCheck="false"
           placeholder={placeholder}
-          className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none border-none caret-cyan-400 overflow-auto text-transparent selection:bg-cyan-500/20 font-mono"
+          className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none border-l-[3px] border-transparent caret-cyan-400 overflow-auto text-transparent selection:bg-cyan-500/20 font-mono"
           style={{ 
             color: 'transparent',
             WebkitTextFillColor: 'transparent',

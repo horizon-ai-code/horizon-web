@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Fira_Code, Poppins } from "next/font/google";
+import { Inter, Fira_Code, Poppins, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Navbar from "@/components/custom/Navbar";
 import { AppProvider } from "@/context/AppContext";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const firaCode = Fira_Code({ subsets: ["latin"], variable: "--font-fira-code" });
@@ -20,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body className={`${inter.variable} ${firaCode.variable} ${poppins.variable} font-sans antialiased text-slate-900 dark:text-gray-200 transition-colors duration-700 ease-in-out`}>
         <ThemeProvider
           attribute="class"

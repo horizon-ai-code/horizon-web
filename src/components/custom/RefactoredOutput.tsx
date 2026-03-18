@@ -32,7 +32,7 @@ const FlowNode = ({ icon: Icon, title, desc, status, isDark, colorCode }: any) =
 };
 
 const FlowConnector = ({ isActive, isDark }: { isActive: boolean, isDark: boolean }) => (
-  <div className="flex-1 h-[2px] w-4 md:w-8 relative overflow-hidden rounded-full mx-2 flex items-center">
+  <div className="flex-1 min-h-[3px] h-[3px] shrink-0 w-4 md:w-8 relative overflow-hidden rounded-full mx-2 flex items-center">
     <div className={`absolute inset-0 ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
     <div className={`absolute h-full left-0 transition-all duration-1000 ${isActive ? 'w-full bg-cyan-400 shadow-[0_0_10px_rgba(0,229,255,0.8)]' : 'w-0 bg-cyan-400'}`}></div>
   </div>
@@ -94,7 +94,7 @@ export default function RefactoredOutput({
         
         <button 
           onClick={handleCopy}
-          className={`p-2 rounded-[10px] transition-colors ring-1 ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10 ring-transparent hover:ring-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 ring-transparent hover:ring-slate-200'}`}
+          className={`p-2 rounded-[10px] transition-colors ring-1 cursor-pointer ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10 ring-transparent hover:ring-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 ring-transparent hover:ring-slate-200'}`}
           title="Copy Code"
         >
           <Copy size={16} />
@@ -130,7 +130,7 @@ export default function RefactoredOutput({
           <div className={`absolute inset-0 z-30 flex flex-col items-center justify-center transition-all duration-500 
             ${isDark ? 'bg-[#000000]/90 backdrop-blur-2xl' : 'bg-white/95 backdrop-blur-2xl'}`}>
              <div className="flex justify-end p-5 absolute top-0 right-0 w-full z-40">
-                {appState === 'done' && <button onClick={() => setShowFlowchartModal(false)} className={`p-2 rounded-full ring-1 transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 ring-white/10 text-white' : 'bg-slate-50 hover:bg-slate-100 ring-slate-200 text-slate-800'}`}><X size={18} /></button>}
+                {appState === 'done' && <button onClick={() => setShowFlowchartModal(false)} className={`p-2 rounded-full ring-1 transition-colors cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10 ring-white/10 text-white' : 'bg-slate-50 hover:bg-slate-100 ring-slate-200 text-slate-800'}`}><X size={18} /></button>}
              </div>
              
              <OrchestrationFlowchart activeStep={activeStep} isDark={isDark} />

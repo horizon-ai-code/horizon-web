@@ -30,8 +30,8 @@ export default function ThemeToggle() {
         <Moon size={13} className={`transition-all duration-500 ${isDark ? 'opacity-100 scale-100 text-cyan-400' : 'opacity-0 scale-50'}`} />
       </div>
       <div 
-        className={`w-6 h-6 rounded-full absolute top-1/2 -translate-y-1/2 transition-all duration-500 transform shadow-md ring-1
-          ${isDark ? 'left-1 bg-gradient-to-br from-gray-200 to-gray-400 ring-white/20 translate-x-0' : 'left-[32px] bg-gradient-to-br from-slate-700 to-slate-900 ring-black/10 translate-x-0'}`}
+        className={`w-6 h-6 rounded-full absolute top-1/2 -translate-y-1/2 left-0 transition-transform duration-500 shadow-md ring-1
+          ${isDark ? 'translate-x-[4px] bg-gradient-to-br from-gray-200 to-gray-400 ring-white/20' : 'translate-x-[32px] bg-gradient-to-br from-slate-700 to-slate-900 ring-black/10'}`}
       />
     </div>
   );
