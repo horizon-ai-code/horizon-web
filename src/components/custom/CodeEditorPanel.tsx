@@ -100,8 +100,23 @@ export default function CodeEditorPanel({ value, onChange, placeholder, diffType
               padding: `24px 24px ${bottomPadding} 24px`, 
               background: "transparent",
               backgroundColor: 'transparent', 
-              fontSize: '13.5px',
-              lineHeight: '24px'
+              fontSize: '13px',
+              lineHeight: '24px',
+              fontWeight: 'normal',
+              fontVariantLigatures: 'none',
+            }}
+            codeTagProps={{
+              style: {
+                fontFamily: "'Fira Code', monospace", 
+                fontSize: '13px',                    
+                lineHeight: '24px',                  
+                tabSize: 4,                         
+                padding: 0,                          
+                background: "transparent",
+                letterSpacing: 'normal',
+                fontWeight: 400,
+                fontVariantLigatures: 'none',
+              }
             }}
             wrapLines={true}
             lineProps={(lineNumber) => {
@@ -136,10 +151,17 @@ export default function CodeEditorPanel({ value, onChange, placeholder, diffType
             color: 'transparent',
             WebkitTextFillColor: 'transparent',
             whiteSpace: 'pre',
+            wordSpacing: 'normal',
+            boxSizing: 'border-box',
+            fontFamily: 'var(--font-fira-code), monospace',
+            fontSize: "13px",
+            tabSize: 4,
             lineHeight: '24px',
             letterSpacing: 'normal',
             display: 'block',
-            padding: `24px 24px ${bottomPadding} 24px`
+            padding: `24px 24px ${bottomPadding} 24px`,
+            fontWeight: 'normal',
+            fontVariantLigatures: 'none',
           }}
         />
       </div>
