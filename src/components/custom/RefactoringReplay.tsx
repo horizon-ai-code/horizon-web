@@ -66,7 +66,7 @@ export default function RefactoringReplay() {
         <SyntaxHighlighter
           language="java"
           style={isDark ? vscDarkPlus : vs}
-          customStyle={{ margin: 0, padding: '1.5rem', background: 'transparent' }}
+          customStyle={{ margin: 0, border: "none", boxShadow: "none", backgroundImage: "none", padding: '1.5rem', background: 'transparent' }}
           wrapLines={true}
           showLineNumbers={true}
           lineNumberStyle={{ color: isDark ? '#4b5563' : '#9CA3AF', minWidth: '2.5em', paddingRight: '1.5em', textAlign: 'right' }}

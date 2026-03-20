@@ -94,7 +94,11 @@ export default function CodeEditorPanel({ value, onChange, placeholder, diffType
             style={isDark ? vscDarkPlus : vs}
             customStyle={{ 
               margin: 0, 
+              border: "none",
+              boxShadow: "none",
+              backgroundImage: "none",
               padding: `24px 24px ${bottomPadding} 24px`, 
+              background: "transparent",
               backgroundColor: 'transparent', 
               fontSize: '13.5px',
               lineHeight: '24px'

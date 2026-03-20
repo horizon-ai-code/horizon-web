@@ -39,6 +39,7 @@ export default function Input({
   const { appState } = useAppContext();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -123,26 +124,30 @@ export default function Input({
         <div className={`absolute bottom-0 left-0 w-full pt-20 pb-6 px-6 z-30 pointer-events-none transition-colors duration-700
           ${isDark ? 'bg-gradient-to-t from-[#0f0f11] via-[#0f0f11]/90 to-transparent' : 'bg-gradient-to-t from-white via-white/90 to-transparent'}`}>
           
-          <div className={`pointer-events-auto flex items-end gap-3 pl-4 pr-2 py-2 mx-auto max-w-xl ring-1 backdrop-blur-2xl shadow-2xl
-            ${inputError 
-              ? 'ring-red-500/50 bg-red-500/5 shadow-[0_0_30px_rgba(239,68,68,0.15)]' 
-              : (isDark ? 'bg-[#111]/95 ring-white/10 focus-within:ring-cyan-400/50 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.1)] shadow-[0_10px_40px_rgba(0,0,0,0.6)]' : 'bg-white/95 ring-slate-200/80 focus-within:ring-cyan-400/40 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.15)] shadow-[0_10px_40px_rgba(0,0,0,0.08)]')
-            }`}
-            style={{
-              borderRadius: isChatExpanded ? '16px' : '28px',
-              transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}
-          >
+          <div 
+  className={`pointer-events-auto flex items-end gap-3 pl-4 pr-2 py-2 mx-auto ring-1 backdrop-blur-2xl shadow-2xl
+    ${isFocused ? 'max-w-full w-full' : 'max-w-xl'} 
+    ${inputError 
+      ? 'ring-red-500/50 bg-red-500/5 shadow-[0_0_30px_rgba(239,68,68,0.15)]' 
+      : (isDark ? 'bg-[#111]/95 ring-white/10 focus-within:ring-cyan-400/50 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.1)] shadow-[0_10px_40px_rgba(0,0,0,0.6)]' : 'bg-white/95 ring-slate-200/80 focus-within:ring-cyan-400/40 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.15)] shadow-[0_10px_40px_rgba(0,0,0,0.08)]')
+    }`}
+  style={{
+    borderRadius: isChatExpanded ? '16px' : '28px',
+    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+  }}
+>
             
             <div className="h-[40px] w-[32px] flex items-center justify-center shrink-0">
               <Command className={`${inputError ? 'text-red-500' : (isDark ? 'text-cyan-400' : 'text-cyan-500')} transition-colors duration-300 opacity-90`} size={18} />
             </div>
-            
+
             <textarea 
               ref={chatInputRef}
               value={inputInstruction} 
               onChange={handleInputChange} 
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsFocused(true)}   // <-- ADD THIS
+              onBlur={() => setIsFocused(false)}   // <-- ADD THIS
               placeholder="Ask the Swarm to refactor or optimize..." 
               className={`flex-1 bg-transparent border-none outline-none text-[14px] font-medium transition-colors resize-none overflow-y-auto custom-chat-scrollbar
                 ${isDark ? 'text-gray-200 placeholder-gray-500' : 'text-slate-900 placeholder-slate-400'}`} 
