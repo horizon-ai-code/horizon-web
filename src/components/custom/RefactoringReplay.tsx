@@ -108,13 +108,13 @@ export default function RefactoringReplay() {
             };
             
             if (step.issueLines?.includes(lineNumber)) {
-              style.backgroundColor = isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(249, 115, 22, 0.08)';
+              style.backgroundColor = isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 237, 213, 0.8)';
               style.borderLeft = '3px solid #f97316';
             } else if (step.addedLines.includes(lineNumber)) {
-              style.backgroundColor = isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.08)';
+              style.backgroundColor = isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(220, 252, 231, 0.8)';
               style.borderLeft = '3px solid #22c55e';
             } else if (step.removedLines.includes(lineNumber)) {
-              style.backgroundColor = isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)';
+              style.backgroundColor = isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 226, 226, 0.8)';
               style.borderLeft = '3px solid #ef4444';
             }
             return { style };

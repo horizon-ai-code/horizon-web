@@ -86,13 +86,14 @@ export default function CodeEditorPanel({
             const isAdded = showDiff && highlightLines.added?.includes(i);
             const isIssue = showDiff && highlightLines.issue?.includes(i);
             
-            let bgClass = "h-[24px] w-full ";
-            if (isRemoved) bgClass += isDark ? 'bg-red-500/15' : 'bg-red-500/08';
-            else if (isAdded) bgClass += isDark ? 'bg-cyan-500/15' : 'bg-cyan-500/08';
-            else if (isIssue) bgClass += isDark ? 'bg-orange-500/15' : 'bg-orange-500/08';
-            else bgClass += "bg-transparent";
+            const getBgStyle = () => {
+              if (isRemoved) return { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 226, 226, 0.8)' };
+              if (isAdded) return { backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(220, 252, 231, 0.8)' };
+              if (isIssue) return { backgroundColor: isDark ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 237, 213, 0.8)' };
+              return { backgroundColor: 'transparent' };
+            };
 
-            return <div key={i} className={bgClass} />;
+            return <div key={i} className="h-[24px] w-full" style={getBgStyle()} />;
           })}
         </div>
       </div>
