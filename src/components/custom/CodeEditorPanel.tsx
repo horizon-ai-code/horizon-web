@@ -86,7 +86,7 @@ export default function CodeEditorPanel({
             const isAdded = showDiff && highlightLines.added?.includes(i);
             const isIssue = showDiff && highlightLines.issue?.includes(i);
             
-            let bgClass = "h-[24px] w-full theme-transition ";
+            let bgClass = "h-[24px] w-full ";
             if (isRemoved) bgClass += isDark ? 'bg-red-500/15' : 'bg-red-500/10';
             else if (isAdded) bgClass += isDark ? 'bg-cyan-500/15' : 'bg-cyan-500/10';
             else if (isIssue) bgClass += isDark ? 'bg-orange-500/15' : 'bg-orange-500/10';
@@ -100,8 +100,7 @@ export default function CodeEditorPanel({
       {/* 2. GUTTER LAYER (Now transparent, only colors the numbers) */}
       <div 
         ref={gutterRef}
-        className={`w-14 z-10 select-none flex flex-col theme-transition overflow-hidden shrink-0 bg-transparent
-          ${isDark ? 'text-zinc-600/70' : 'text-zinc-400'}`}
+        className="w-14 z-10 select-none flex flex-col overflow-hidden shrink-0 bg-transparent text-muted-foreground"
         style={{ paddingTop: '24px', paddingBottom: bottomPadding }}
       >
         {lines.map((_, i) => {
@@ -112,10 +111,10 @@ export default function CodeEditorPanel({
           return (
             <div 
               key={i} 
-              className={`h-[24px] leading-[24px] flex items-center justify-center transition-colors duration-300
-                ${isRemoved ? (isDark ? 'text-red-400 font-medium' : 'text-red-600 font-medium') : 
-                  isAdded ? (isDark ? 'text-cyan-400 font-medium' : 'text-cyan-600 font-medium') : 
-                  isIssue ? (isDark ? 'text-orange-400 font-medium' : 'text-orange-600 font-medium') : ''}`}
+              className={`h-[24px] leading-[24px] flex items-center justify-center
+                ${isRemoved ? 'text-red-500 font-medium' : 
+                  isAdded ? 'text-cyan-500 font-medium' : 
+                  isIssue ? 'text-orange-500 font-medium' : ''}`}
             >
               {i + 1}
             </div>
@@ -124,7 +123,7 @@ export default function CodeEditorPanel({
       </div>
 
       {/* 3. CODE LAYER (Cleaned up, perfectly aligned to text area) */}
-      <div className="relative flex-1 overflow-hidden h-full z-10">
+      <div className="relative flex-1 overflow-hidden h-full z-10 no-transition">
         <div ref={preRef} className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <SyntaxHighlighter
             language="java"

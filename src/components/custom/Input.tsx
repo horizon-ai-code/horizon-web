@@ -67,16 +67,15 @@ export default function Input({
   if (!mounted) return null;
 
   return (
-    <div className="flex flex-col h-full min-h-0 animate-meet-left relative theme-transition delay-input">
-      <div className={`flex-1 flex flex-col min-h-0 rounded-[24px] ring-1 overflow-hidden theme-transition shadow-2xl relative backdrop-blur-2xl
+    <div className="flex flex-col h-full min-h-0 animate-meet-left relative">
+      <div className={`flex-1 flex flex-col min-h-0 rounded-[24px] ring-1 overflow-hidden shadow-2xl relative backdrop-blur-2xl
         ${sourceError 
-          ? (isDark ? 'bg-zinc-900/90 ring-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.15)]' : 'bg-red-50/90 ring-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.15)]')
-          : (isDark ? 'bg-zinc-950/80 ring-white/[0.08]' : 'bg-white/80 ring-border/60')
+          ? 'bg-red-500/5 ring-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.15)]'
+          : 'bg-background/80 ring-border/60'
         }`}>
         
         {/* NEW MAC-STYLE HEADER */}
-        <div className={`px-5 flex items-center justify-between border-b h-[48px] shrink-0 relative z-20 theme-transition
-          ${isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-secondary/50 border-border'}`}>
+        <div className="px-5 flex items-center justify-between border-b h-[48px] shrink-0 relative z-20 bg-secondary/50 border-border">
           
           {/* Mac Traffic Lights */}
           <div className="flex items-center gap-2">
@@ -104,14 +103,13 @@ export default function Input({
         <div className="flex-1 min-h-0 flex flex-col relative z-10">
           {sourceCode.trim() === '' && (
             <div className="absolute top-0 right-0 bottom-0 left-14 flex flex-col items-center justify-center text-center px-6 pointer-events-none z-10">
-              <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-[32px] mb-6 shadow-2xl theme-transition
-                ${isDark ? 'bg-zinc-900 ring-1 ring-white/5' : 'bg-white ring-1 ring-zinc-200 shadow-xl'}`}>
-                <FileCode2 size={36} className={isDark ? 'text-cyan-500/50' : 'text-cyan-500/60'} strokeWidth={1.5} />
+              <div className="flex items-center justify-center w-[88px] h-[88px] rounded-[32px] mb-6 shadow-2xl bg-background ring-1 ring-border">
+                <FileCode2 size={36} className="text-cyan-500/60" strokeWidth={1.5} />
               </div>
-              <p className={`text-[15px] font-semibold theme-transition ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+              <p className="text-[15px] font-semibold text-foreground">
                 Paste a short Java code snippet (5–20 lines only)
               </p>
-              <p className={`text-[13px] mt-2 font-medium max-w-sm theme-transition ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              <p className="text-[13px] mt-2 font-medium max-w-sm text-muted-foreground">
                 Best for loops, functions, and small logic blocks. No class/package declarations needed.
               </p>
             </div>
@@ -130,15 +128,14 @@ export default function Input({
         </div>
 
         {/* Luxurious Floating Chatbox */}
-        <div className={`absolute bottom-0 left-0 w-full pt-20 pb-6 px-6 z-30 pointer-events-none theme-transition
-          ${isDark ? 'bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent' : 'bg-gradient-to-t from-background via-background/90 to-transparent'}`}>
+        <div className="absolute bottom-0 left-0 w-full pt-20 pb-6 px-6 z-30 pointer-events-none bg-gradient-to-t from-background via-background/90 to-transparent">
           
           <div 
             className={`pointer-events-auto flex items-end gap-3 pl-4 pr-2 py-2 mx-auto ring-1 backdrop-blur-2xl shadow-2xl
               ${isFocused ? 'max-w-full w-full' : 'max-w-xl'} 
               ${inputError 
                 ? 'ring-red-500/50 bg-red-500/5 shadow-[0_0_30px_rgba(239,68,68,0.15)]' 
-                : (isDark ? 'bg-zinc-900/95 ring-white/10 focus-within:ring-cyan-500/50 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.1)] shadow-[0_10px_40px_rgba(0,0,0,0.6)]' : 'bg-white/95 ring-zinc-200/80 focus-within:ring-cyan-500/40 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.15)] shadow-[0_10px_40px_rgba(0,0,0,0.06)]')
+                : 'bg-background/95 ring-border focus-within:ring-cyan-500/50 focus-within:shadow-[0_0_30px_rgba(0,229,255,0.1)] shadow-2xl'
               }`}
             style={{
               borderRadius: isChatExpanded ? '16px' : '28px',
@@ -158,8 +155,7 @@ export default function Input({
               onFocus={() => setIsFocused(true)}   
               onBlur={() => setIsFocused(false)}   
               placeholder="Ask the Swarm to refactor or optimize..." 
-              className={`flex-1 bg-transparent border-none outline-none text-[14px] font-medium theme-transition resize-none overflow-y-auto custom-chat-scrollbar
-                ${isDark ? 'text-zinc-200 placeholder-zinc-500' : 'text-zinc-900 placeholder-zinc-400'}`} 
+              className="flex-1 bg-transparent border-none outline-none text-[14px] font-medium resize-none overflow-y-auto custom-chat-scrollbar text-foreground placeholder-muted-foreground" 
               disabled={appState === 'analyzing'}
               rows={1}
               style={{ minHeight: '40px', lineHeight: '24px', paddingTop: '8px', paddingBottom: '8px' }}

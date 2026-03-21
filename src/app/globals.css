@@ -11,19 +11,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@layer utilities {
-  .theme-transition {
-    transition: background-color 1000ms cubic-bezier(0.4, 0, 0.2, 1), 
-                color 1000ms cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 1000ms cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 1000ms cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+@layer base {
+  *, *::before, *::after {
+    transition:
+      background-color 700ms cubic-bezier(0.4, 0, 0.2, 1),
+      color            600ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-color     650ms cubic-bezier(0.4, 0, 0.2, 1),
+      fill             600ms cubic-bezier(0.4, 0, 0.2, 1),
+      stroke           600ms cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow       600ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity          400ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .delay-toggle { transition-delay: 0ms; }
-  .delay-output { transition-delay: 500ms; }
-  .delay-input { transition-delay: 750ms; }
-  .delay-bg { transition-delay: 1000ms; }
+  .no-transition,
+  .no-transition * {
+    transition: none !important;
+  }
 
   .animate-meet-left {
     animation: slideInLeft 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -94,19 +97,6 @@
   }
   button, [role="button"] {
     cursor: pointer;
-  }
-  *, *::before, *::after {
-    transition:
-      background-color 700ms cubic-bezier(0.4, 0, 0.2, 1),
-      color 600ms cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 650ms cubic-bezier(0.4, 0, 0.2, 1),
-      fill 700ms cubic-bezier(0.4, 0, 0.2, 1),
-      stroke 700ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
-
-  /* Prevent SyntaxHighlighter or specific elements from crashing during transition */
-  .no-transition, .no-transition * {
-    transition: none !important;
   }
 }
 

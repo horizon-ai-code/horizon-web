@@ -28,12 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body className={`${inter.variable} ${firaCode.variable} ${poppins.variable} font-sans antialiased text-foreground theme-transition delay-bg`}>
+      <body className={`${inter.variable} ${firaCode.variable} ${poppins.variable} font-sans antialiased text-foreground`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
           <AppProvider>
             <div className="flex flex-col h-screen overflow-hidden">

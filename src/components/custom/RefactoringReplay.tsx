@@ -79,13 +79,13 @@ export default function RefactoringReplay() {
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-500">
       {/* Replay Header */}
-      <div className="px-5 py-4 border-b flex flex-col gap-1 z-10 theme-transition bg-zinc-50/50 border-zinc-200/50 dark:bg-white/[0.02] dark:border-white/[0.08]">
-        <h3 className="text-[14px] font-semibold text-zinc-800 dark:text-zinc-200">{step.title}</h3>
-        <p className="text-[12px] text-zinc-500 dark:text-zinc-400">{step.description}</p>
+      <div className="px-5 py-4 border-b flex flex-col gap-1 z-10 bg-zinc-50/50 border-border dark:bg-white/[0.02]">
+        <h3 className="text-[14px] font-semibold text-foreground">{step.title}</h3>
+        <p className="text-[12px] text-muted-foreground">{step.description}</p>
       </div>
       
       {/* Syntax Highlighting display */}
-      <div className="flex-1 overflow-auto p-0 relative font-mono text-[13px]">
+      <div className="flex-1 overflow-auto p-0 relative font-mono text-[13px] no-transition">
         <SyntaxHighlighter
           language="java"
           style={isDark ? safeDarkTheme : safeLightTheme}
@@ -125,29 +125,29 @@ export default function RefactoringReplay() {
       </div>
 
       {/* Control Bar */}
-      <div className="px-5 py-3 border-t flex items-center justify-between z-10 theme-transition bg-white dark:bg-zinc-950 border-zinc-200/50 dark:border-white/[0.08]">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+      <div className="px-5 py-3 border-t flex items-center justify-between z-10 bg-background border-border">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Step {currentReplayStep + 1} of {replaySteps.length}
         </span>
         <div className="flex items-center gap-2">
           <button 
             onClick={handlePrev} 
             disabled={currentReplayStep === 0}
-            className="p-1.5 rounded-md transition-all border cursor-pointer disabled:opacity-30 disabled:border-transparent text-zinc-600 border-zinc-200 hover:bg-zinc-50 dark:text-zinc-400 dark:border-white/10 dark:hover:bg-white/5"
+            className="p-1.5 rounded-md transition-all border cursor-pointer disabled:opacity-30 disabled:border-transparent text-foreground border-border hover:bg-secondary"
           >
             <ChevronLeft size={16} />
           </button>
           <button 
             onClick={handleNext} 
             disabled={isFinal}
-            className="p-1.5 rounded-md transition-all border cursor-pointer disabled:opacity-30 disabled:border-transparent text-zinc-600 border-zinc-200 hover:bg-zinc-50 dark:text-zinc-400 dark:border-white/10 dark:hover:bg-white/5"
+            className="p-1.5 rounded-md transition-all border cursor-pointer disabled:opacity-30 disabled:border-transparent text-foreground border-border hover:bg-secondary"
           >
             <ChevronRight size={16} />
           </button>
           <button 
             onClick={() => setCurrentReplayStep(replaySteps.length - 1)} 
             disabled={isFinal}
-            className="flex items-center gap-1.5 px-3 py-1.5 ml-2 text-[12px] font-medium rounded-md transition-all border cursor-pointer disabled:opacity-30 disabled:border-transparent text-zinc-600 bg-zinc-50 hover:bg-zinc-100 border-zinc-200 dark:text-zinc-300 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10"
+            className="flex items-center gap-1.5 px-3 py-1.5 ml-2 text-[12px] font-medium rounded-md transition-all border cursor-pointer disabled:opacity-30 disabled:border-transparent bg-secondary/50 text-foreground border-border hover:bg-secondary"
           >
             Skip to Final <FastForward size={14} />
           </button>

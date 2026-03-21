@@ -20,8 +20,8 @@ interface RefactoredOutputProps {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const FlowNode = ({ icon: Icon, title, desc, status, isDark, colorCode }: any) => {
   const getColors = () => {
-    if (status === 'active') return isDark ? `bg-zinc-900 ring-1 ring-cyan-400/50 shadow-[0_0_20px_rgba(0,229,255,0.15)] text-cyan-400` : `bg-white ring-1 ring-cyan-400/50 shadow-[0_0_20px_rgba(0,229,255,0.15)] text-cyan-600`;
-    return isDark ? 'bg-zinc-950 ring-1 ring-white/5 text-zinc-500' : 'bg-secondary/50 ring-1 ring-border text-zinc-400';
+    if (status === 'active') return 'bg-background ring-1 ring-cyan-400/50 shadow-[0_0_20px_rgba(0,229,255,0.15)] text-cyan-600 dark:text-cyan-400';
+    return 'bg-secondary/50 ring-1 ring-border text-zinc-400 dark:text-zinc-500';
   };
   return (
     <div className={`relative flex flex-col items-center justify-center p-3 w-32 h-32 rounded-[20px] transition-all duration-700 ${getColors()} ${status === 'active' ? 'scale-105 z-10' : 'scale-95 z-0 opacity-60'}`}>
@@ -35,8 +35,8 @@ const FlowNode = ({ icon: Icon, title, desc, status, isDark, colorCode }: any) =
 
 const FlowConnector = ({ isActive, isDark }: { isActive: boolean, isDark: boolean }) => (
   <div className="flex-1 min-h-[3px] h-[3px] shrink-0 w-4 md:w-8 relative overflow-hidden rounded-full mx-2 flex items-center">
-    <div className={`absolute inset-0 ${isDark ? 'bg-zinc-800' : 'bg-zinc-200'}`}></div>
-    <div className={`absolute h-full left-0 theme-transition ${isActive ? 'w-full bg-cyan-400 shadow-[0_0_10px_rgba(0,229,255,0.8)]' : 'w-0 bg-cyan-400'}`}></div>
+    <div className="absolute inset-0 bg-zinc-200 dark:bg-zinc-800"></div>
+    <div className={`absolute h-full left-0 ${isActive ? 'w-full bg-cyan-400 shadow-[0_0_10px_rgba(0,229,255,0.8)]' : 'w-0 bg-cyan-400'}`}></div>
   </div>
 );
 
@@ -90,29 +90,28 @@ export default function RefactoredOutput({
   if (!mounted) return null;
 
   return (
-    <div className={`rounded-[24px] ring-1 flex flex-col min-h-0 overflow-hidden shadow-2xl theme-transition delay-output
-      ${isDark ? 'bg-zinc-950/80 ring-white/[0.08] backdrop-blur-2xl' : 'bg-white/80 ring-border/60 backdrop-blur-2xl'}
+    <div className={`rounded-[24px] ring-1 flex flex-col min-h-0 overflow-hidden shadow-2xl bg-background/80 ring-border/60 backdrop-blur-2xl
       ${isTerminalCollapsed ? 'flex-1' : 'flex-[1.5]'}`}>
       
       <div className={`px-3 flex items-center justify-between border-b h-[48px] shrink-0 relative z-20 transition-colors duration-700 ${isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-slate-50/50 border-slate-100'}`}>
         
         {/* 2. UPDATE TOGGLE BUTTONS */}
-        <div className={`flex p-1 rounded-lg theme-transition ${isDark ? 'bg-zinc-950 ring-1 ring-white/10' : 'bg-zinc-100 ring-1 ring-zinc-200/50'}`}>
+        <div className="flex p-1 rounded-lg bg-secondary ring-1 ring-border">
           <button 
             onClick={() => setRightPanelMode('output')}
-            className={`px-3 py-1 text-[11px] font-bold tracking-wider rounded-md transition-all active:scale-95 cursor-pointer ${rightPanelMode === 'output' ? (isDark ? 'bg-zinc-800 text-white shadow-sm' : 'bg-white text-zinc-800 shadow-sm ring-1 ring-zinc-200/20') : (isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-zinc-500 hover:text-zinc-700')}`}
+            className={`px-3 py-1 text-[11px] font-bold tracking-wider rounded-md transition-all active:scale-95 cursor-pointer ${rightPanelMode === 'output' ? 'bg-background text-foreground shadow-sm ring-1 ring-border/20' : 'text-muted-foreground hover:text-foreground'}`}
           >
             OUTPUT
           </button>
           <button 
             onClick={() => setRightPanelMode('replay')}
-            className={`px-3 py-1 text-[11px] font-bold tracking-wider rounded-md transition-all active:scale-95 cursor-pointer ${rightPanelMode === 'replay' ? (isDark ? 'bg-zinc-800 text-white shadow-sm' : 'bg-white text-zinc-800 shadow-sm ring-1 ring-zinc-200/20') : (isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-zinc-500 hover:text-zinc-700')}`}
+            className={`px-3 py-1 text-[11px] font-bold tracking-wider rounded-md transition-all active:scale-95 cursor-pointer ${rightPanelMode === 'replay' ? 'bg-background text-foreground shadow-sm ring-1 ring-border/20' : 'text-muted-foreground hover:text-foreground'}`}
           >
             REPLAY
           </button>
           <button 
             onClick={() => setRightPanelMode('insights')}
-            className={`px-3 py-1 text-[11px] font-bold tracking-wider rounded-md transition-all active:scale-95 cursor-pointer ${rightPanelMode === 'insights' ? (isDark ? 'bg-zinc-800 text-white shadow-sm' : 'bg-white text-zinc-800 shadow-sm ring-1 ring-zinc-200/20') : (isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-zinc-500 hover:text-zinc-700')}`}
+            className={`px-3 py-1 text-[11px] font-bold tracking-wider rounded-md transition-all active:scale-95 cursor-pointer ${rightPanelMode === 'insights' ? 'bg-background text-foreground shadow-sm ring-1 ring-border/20' : 'text-muted-foreground hover:text-foreground'}`}
           >
             INSIGHTS
           </button>
@@ -126,7 +125,7 @@ export default function RefactoredOutput({
           )}
           <button 
             onClick={handleCopy}
-            className={`p-1.5 rounded-md transition-all ring-1 cursor-pointer hover:scale-110 active:scale-90 ${isDark ? 'text-zinc-400 hover:text-white hover:bg-white/10 ring-transparent hover:ring-white/10' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 ring-transparent hover:ring-zinc-200'}`}
+            className="p-1.5 rounded-md transition-all ring-1 cursor-pointer hover:scale-110 active:scale-90 text-muted-foreground hover:text-foreground hover:bg-secondary ring-transparent hover:ring-border"
             title="Copy Code"
           >
             <Copy size={16} />
