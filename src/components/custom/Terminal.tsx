@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Terminal as TerminalIcon, Cpu, AlertCircle, Layers, CheckCircle2, ChevronDown, ChevronUp, Command, Square, Sparkles, X } from "lucide-react";
+import { Terminal as TerminalIcon, Cpu, AlertCircle, Layers, CheckCircle2, ChevronDown, ChevronUp, X } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 interface AgentTerminalLineProps {
@@ -29,13 +29,6 @@ interface TerminalProps {
   isTerminalCollapsed: boolean;
   setIsTerminalCollapsed: (val: boolean) => void;
   terminalEndRef: React.RefObject<HTMLDivElement | null>;
-  inputInstruction?: string;
-  setInputInstruction?: (val: string) => void;
-  inputError?: boolean;
-  setInputError?: (val: boolean) => void;
-  startAnalysis?: () => void;
-  stopAnalysis?: () => void;
-  chatInputRef?: React.RefObject<HTMLTextAreaElement | null>;
   terminalEntries?: {id: string, type: 'command' | 'log' | 'system', text: string, colorClass?: string, icon?: any}[];
 }
 
@@ -51,34 +44,11 @@ export default function Terminal({
   isTerminalCollapsed,
   setIsTerminalCollapsed,
   terminalEndRef,
-  inputInstruction,
-  setInputInstruction,
-  inputError,
-  setInputError,
-  startAnalysis,
-  stopAnalysis,
-  chatInputRef,
   terminalEntries = []
 }: TerminalProps) {
   const { appState } = useAppContext();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isChatFocused, setIsChatFocused] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (setInputInstruction) setInputInstruction(e.target.value);
-    if (inputError && setInputError) setInputError(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (appState !== 'analyzing' && startAnalysis) {
-        startAnalysis();
-      }
-    }
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -165,38 +135,6 @@ export default function Terminal({
               return null;
            })}
 
-           {/* ACTIVE INPUT PROMPT (Only shown when IDLE or DONE - hidden during the debate) */}
-           {(appState === 'idle' || appState === 'done') && (
-             <div className="flex items-start gap-1 w-full max-w-6xl mt-2 transition-opacity duration-300">
-                <span className={`text-[14px] whitespace-nowrap pt-[2px] font-semibold transition-colors duration-300
-                  ${isDark ? 'text-jb-text opacity-70' : 'text-[#818594]'}`}>
-                  user@horizon ~ {'>'}
-                </span>
-                 <div className={`flex-1 flex items-start bg-transparent relative font-mono overflow-hidden`}>
-                   {/* Visual Mirror for Cursor Positioning */}
-                   <div className="absolute inset-0 pointer-events-none flex items-start px-1 py-[2px] whitespace-pre-wrap break-all text-[14px] leading-[22px]">
-                     <span className="text-transparent">{inputInstruction || ""}</span>
-                     {isChatFocused && (
-                       <span className="inline-block w-[8px] h-[17px] bg-[#d3d3d3] mt-[2px] terminal-cursor"></span>
-                     )}
-                   </div>
-
-                     <textarea 
-                       ref={chatInputRef as React.RefObject<HTMLTextAreaElement>}
-                       value={inputInstruction || ""} 
-                       onChange={handleInputChange} 
-                       onKeyDown={handleKeyDown}
-                       onFocus={() => setIsChatFocused(true)}   
-                       onBlur={() => setIsChatFocused(false)}   
-                       placeholder=""
-                       className={`flex-1 bg-transparent border-none outline-none text-[14px] font-medium resize-none overflow-y-auto px-1 py-[2px] w-full transition-colors duration-300 relative z-10 leading-[22px]
-                         ${isDark ? 'text-jb-text placeholder-jb-text-muted caret-transparent' : 'text-[#080808] placeholder-[#818594] caret-transparent'}`} 
-                       rows={1}
-                       style={{ minHeight: '26px' }}
-                     />
-                 </div>
-             </div>
-           )}
 
            <div ref={terminalEndRef} className="h-6 shrink-0" />
         </div>

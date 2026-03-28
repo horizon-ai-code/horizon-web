@@ -2,8 +2,9 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { FileCode2, Command, Square, Sparkles, X } from "lucide-react";
+import { FileCode2, Command, X } from "lucide-react";
 import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
+import RefactorInput from "@/components/custom/RefactorInput";
 import { useAppContext } from "@/context/AppContext";
 
 interface InputProps {
@@ -11,6 +12,11 @@ interface InputProps {
   setSourceCode: (val: string) => void;
   sourceError: boolean;
   setSourceError: (val: boolean) => void;
+  inputInstruction: string;
+  setInputInstruction: (val: string) => void;
+  inputError: boolean;
+  setInputError: (val: boolean) => void;
+  startAnalysis: () => void;
 }
 
 export default function Input({
@@ -18,6 +24,11 @@ export default function Input({
   setSourceCode,
   sourceError,
   setSourceError,
+  inputInstruction,
+  setInputInstruction,
+  inputError,
+  setInputError,
+  startAnalysis,
 }: InputProps) {
   const { appState } = useAppContext();
   const { resolvedTheme } = useTheme();
@@ -149,6 +160,14 @@ export default function Input({
               </div>
             </div>
           )}
+          <RefactorInput 
+            inputInstruction={inputInstruction}
+            setInputInstruction={setInputInstruction}
+            inputError={inputError}
+            setInputError={setInputError}
+            startAnalysis={startAnalysis}
+            isDark={isDark}
+          />
         </div>
         
       </div>

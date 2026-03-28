@@ -50,14 +50,11 @@ export default function Home() {
   const [inputInstruction, setInputInstruction] = useState("");
   const [inputError, setInputError] = useState(false);
   const [sourceError, setSourceError] = useState(false);
-  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(false);
   const [terminalEntries, setTerminalEntries] = useState<{id: string, type: 'command' | 'log' | 'system', text: string, colorClass?: string, icon?: any}[]>([]);
-
   const terminalPanelRef = useRef<any>(null);
   const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
   const terminalEndRef = useRef<HTMLDivElement>(null);
-  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   const [mounted, setMounted] = useState(false);
 
@@ -83,14 +80,6 @@ export default function Home() {
     }
   }, [terminalEntries, activeStep, isTerminalCollapsed, appState]);
 
-  useEffect(() => {
-    if (chatInputRef.current) {
-      chatInputRef.current.style.height = '40px'; 
-      const scrollHeight = chatInputRef.current.scrollHeight;
-      chatInputRef.current.style.height = Math.min(scrollHeight, 140) + 'px'; 
-      setIsChatExpanded(scrollHeight > 45); 
-    }
-  }, [inputInstruction]);
 
   const startAnalysis = () => {
     let hasError = false;
@@ -104,12 +93,6 @@ export default function Home() {
     setInputInstruction("");
     setInputError(false);
     setSourceError(false);
-    setIsChatExpanded(false);
-    
-    if (chatInputRef.current) {
-      chatInputRef.current.style.height = '40px';
-      chatInputRef.current.blur();
-    }
 
     if (appState === 'analyzing') return;
     setAppState('analyzing');
@@ -175,7 +158,17 @@ export default function Home() {
               <PanelGroup orientation="horizontal" className="gap-2">
                 <Panel defaultSize={50} minSize={20} className={`rounded-xl border overflow-hidden shadow-xl transition-colors duration-300
                   ${isDark ? 'bg-jb-panel border-[#393b40]' : 'bg-white border-[#dfdfdf]'}`}>
-                  <Input sourceCode={sourceCode} setSourceCode={setSourceCode} sourceError={sourceError} setSourceError={setSourceError} />
+                  <Input 
+                    sourceCode={sourceCode} 
+                    setSourceCode={setSourceCode} 
+                    sourceError={sourceError} 
+                    setSourceError={setSourceError}
+                    inputInstruction={inputInstruction}
+                    setInputInstruction={setInputInstruction}
+                    inputError={inputError}
+                    setInputError={setInputError}
+                    startAnalysis={startAnalysis}
+                  />
                 </Panel>
                 
                 <PanelResizeHandle className="w-[1px] bg-transparent hover:bg-jb-accent transition-all duration-200 cursor-col-resize z-20" />
@@ -216,10 +209,11 @@ export default function Home() {
               id="terminal-panel"
             >
               <Terminal 
-                activeStep={activeStep} isTerminalCollapsed={isTerminalCollapsed} setIsTerminalCollapsed={setIsTerminalCollapsed}
-                terminalEndRef={terminalEndRef} inputInstruction={inputInstruction} setInputInstruction={setInputInstruction}
-                inputError={inputError} setInputError={setInputError} startAnalysis={startAnalysis} stopAnalysis={stopAnalysis}
-                chatInputRef={chatInputRef} terminalEntries={terminalEntries}
+                activeStep={activeStep} 
+                isTerminalCollapsed={isTerminalCollapsed} 
+                setIsTerminalCollapsed={setIsTerminalCollapsed}
+                terminalEndRef={terminalEndRef} 
+                terminalEntries={terminalEntries}
               />
             </Panel>
           </PanelGroup>
