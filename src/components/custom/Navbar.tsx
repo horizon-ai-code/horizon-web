@@ -17,12 +17,18 @@ export default function Navbar() {
     <nav className={`relative z-40 border-b flex justify-between items-center shrink-0 h-[44px] select-none transition-all duration-300
       ${isDark ? 'bg-[#1e1f22]/75 border-jb-border/50' : 'bg-[#f7f8fa]/85 border-[#ebecf0]'} backdrop-blur-md font-sans`}>
       
-      {/* Left Section: Menu & Project Info */}
+      {/* Left Section: Logo, Menu & Project Info */}
       <div className="flex items-center h-full">
-        <button className={`h-full px-4 flex items-center justify-center transition-colors cursor-default
-          ${isDark ? 'text-jb-text opacity-80 hover:bg-jb-panel hover:opacity-100' : 'text-[#080808] opacity-70 hover:bg-[#ebecf0] hover:opacity-100'}`}>
-          <Menu size={16} />
-        </button>
+        {/* Corner Logo */}
+        <div className={`h-full px-4 flex items-center justify-center shrink-0 border-r transition-colors duration-300
+          ${isDark ? 'border-jb-border/30' : 'border-[#ebecf0]'}`}>
+           <img 
+             src={isDark ? "/logo-dark.png" : "/logo-light.png"} 
+             alt="Logo" 
+             className="h-[20px] w-auto transition-opacity duration-300 opacity-90 hover:opacity-100"
+           />
+        </div>
+
         <button className={`h-full px-3 flex items-center gap-1.5 text-[13px] font-semibold tracking-wide transition-colors cursor-default
           ${isDark ? 'text-jb-text hover:bg-jb-panel' : 'text-[#080808] hover:bg-[#ebecf0]'}`}>
           Horizon AI

@@ -4,13 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useAppContext } from "@/context/AppContext";
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
-import { FolderTree, Search, GitBranch, Play, LayoutGrid, Check, Bell, Settings2 } from "lucide-react";
 
 import LoadingOverlay from "@/components/feature/LoadingOverlay";
 import Input from "@/components/custom/Input";
 import RefactoredOutput from "@/components/custom/RefactoredOutput";
 import Terminal from "@/components/custom/Terminal";
 import Navbar from "@/components/custom/Navbar";
+import Sidebar from "@/components/custom/Sidebar";
 
 const INITIAL_SOURCE = `public boolean containsDuplicate(int[] nums) {
     for (int i = 0; i < nums.length; i++) {
@@ -161,30 +161,7 @@ export default function Home() {
   return (
     <div className={`flex h-screen overflow-hidden transition-colors duration-500 relative ${isDark ? 'bg-jb-bg text-jb-text' : 'bg-[#ffffff] text-[#080808]'}`}>
 
-      {/* Activity Bar (Left) */}
-      <div className={`w-[48px] shrink-0 border-r flex flex-col items-center z-20 transition-all duration-300
-        ${isDark ? 'border-jb-border/40 bg-[#1e1f22]/60' : 'border-[#ebecf0] bg-[#f7f8fa]/80'} backdrop-blur-xl`}>
-        
-        {/* Corner Logo Container - Aligns with Navbar Height */}
-        <div className="h-[44px] w-full flex items-center justify-center shrink-0">
-           <img 
-             src={isDark ? "/logo-dark.png" : "/logo-light.png"} 
-             alt="Logo" 
-             className="h-[22px] w-auto transition-opacity duration-300 opacity-90 hover:opacity-100"
-           />
-        </div>
-
-        {/* Activity Bar Icons */}
-        <div className="flex flex-col items-center py-4 gap-6 w-full">
-          <button className={`transition-colors ${isDark ? 'text-jb-text opacity-50 hover:opacity-100 hover:text-jb-accent' : 'text-[#818594] hover:text-[#3574f0]'}`}><FolderTree size={20} strokeWidth={1.5} /></button>
-          <button className={`transition-colors ${isDark ? 'text-jb-text opacity-50 hover:opacity-100 hover:text-jb-accent' : 'text-[#818594] hover:text-[#3574f0]'}`}><Search size={20} strokeWidth={1.5} /></button>
-          <button className={`transition-colors ${isDark ? 'text-jb-text opacity-50 hover:opacity-100 hover:text-jb-accent' : 'text-[#818594] hover:text-[#3574f0]'}`}><GitBranch size={20} strokeWidth={1.5} /></button>
-          <button className={`transition-colors ${isDark ? 'text-jb-text opacity-50 hover:opacity-100 hover:text-jb-accent' : 'text-[#818594] hover:text-[#3574f0]'}`}><Play size={20} strokeWidth={1.5} /></button>
-          <button className={`transition-colors ${isDark ? 'text-jb-text opacity-50 hover:opacity-100 hover:text-jb-accent' : 'text-[#818594] hover:text-[#3574f0]'}`}><LayoutGrid size={20} strokeWidth={1.5} /></button>
-          <div className="flex-1" />
-          <button className={`transition-colors ${isDark ? 'text-jb-text opacity-50 hover:opacity-100 hover:text-jb-accent' : 'text-[#818594] hover:text-[#3574f0]'}`}><Settings2 size={20} strokeWidth={1.5} /></button>
-        </div>
-      </div>
+      <Sidebar />
 
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative z-10">
         <Navbar />
@@ -246,24 +223,6 @@ export default function Home() {
               />
             </Panel>
           </PanelGroup>
-        </div>
-        {/* Status Bar (Bottom) - Flush with side/bottom */}
-        <div className={`h-[28px] shrink-0 border-t flex items-center justify-between px-3 text-[11px] font-medium transition-all duration-300 z-20
-          ${isDark ? 'bg-[#1e1f22]/75 border-jb-border/50 text-jb-text/80' : 'bg-[#f7f8fa]/85 border-[#ebecf0] text-[#818594]'} backdrop-blur-md`}>
-           <div className="flex items-center gap-4 h-full">
-              <div className={`flex items-center gap-1.5 px-1.5 h-full cursor-pointer transition-colors ${isDark ? 'hover:bg-jb-border' : 'hover:bg-[#f1f2f6]'}`}>
-                <GitBranch size={12} /> main
-              </div>
-              <div className={`flex items-center gap-1.5 px-1.5 h-full cursor-pointer transition-colors ${isDark ? 'hover:bg-jb-border' : 'hover:bg-[#f1f2f6]'}`}>
-                <Check size={12} className={isDark ? "text-[#61c554]" : "text-emerald-600"} /> No Errors
-              </div>
-           </div>
-           <div className="flex items-center gap-4 h-full">
-              <div className={`px-1.5 h-full flex items-center cursor-pointer transition-colors ${isDark ? 'hover:bg-jb-border' : 'hover:bg-[#f1f2f6]'}`}>10:1</div>
-              <div className={`px-1.5 h-full flex items-center cursor-pointer transition-colors ${isDark ? 'hover:bg-jb-border' : 'hover:bg-[#f1f2f6]'}`}>UTF-8</div>
-              <div className={`px-1.5 h-full flex items-center cursor-pointer transition-colors ${isDark ? 'hover:bg-jb-border' : 'hover:bg-[#f1f2f6]'}`}>LF</div>
-              <div className={`px-1.5 h-full flex items-center cursor-pointer transition-colors ${isDark ? 'hover:bg-jb-border' : 'hover:bg-[#f1f2f6]'}`}><Bell size={12} /></div>
-           </div>
         </div>
       </div>
     </div>
