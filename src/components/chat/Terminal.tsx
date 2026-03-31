@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Terminal as TerminalIcon, Cpu, AlertCircle, Layers, CheckCircle2, ChevronDown, ChevronUp, X } from "lucide-react";
-import { useAppContext } from "@/context/AppContext";
+import { AppState } from "@/store/useChatStore";
 
 interface AgentTerminalLineProps {
   text: string;
@@ -30,6 +30,7 @@ interface TerminalProps {
   setIsTerminalCollapsed: (val: boolean) => void;
   terminalEndRef: React.RefObject<HTMLDivElement | null>;
   terminalEntries?: {id: string, type: 'command' | 'log' | 'system', text: string, colorClass?: string, icon?: any}[];
+  appState: AppState;
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -44,9 +45,9 @@ export default function Terminal({
   isTerminalCollapsed,
   setIsTerminalCollapsed,
   terminalEndRef,
-  terminalEntries = []
+  terminalEntries = [],
+  appState
 }: TerminalProps) {
-  const { appState } = useAppContext();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

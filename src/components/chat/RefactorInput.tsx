@@ -2,7 +2,7 @@
 
 import { Command, Sparkles, Square } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
-import { useAppContext } from "@/context/AppContext";
+import { AppState } from "@/store/useChatStore";
 
 interface RefactorInputProps {
   inputInstruction: string;
@@ -12,6 +12,7 @@ interface RefactorInputProps {
   startAnalysis: () => void;
   stopAnalysis: () => void;
   isDark: boolean;
+  appState: AppState;
 }
 
 export default function RefactorInput({
@@ -21,9 +22,9 @@ export default function RefactorInput({
   setInputError,
   startAnalysis,
   stopAnalysis,
-  isDark
+  isDark,
+  appState
 }: RefactorInputProps) {
-  const { appState } = useAppContext();
   
   // Mapped state variables to match your branch's exact naming
   const [isChatFocused, setIsChatFocused] = useState(false);

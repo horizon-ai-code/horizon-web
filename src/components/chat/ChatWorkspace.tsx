@@ -1,23 +1,23 @@
 "use client"
 
-import React, { useState, useRef, useEffect, use } from "react";
-import { useAppContext, INITIAL_SOURCE, INITIAL_REFACTORED } from "@/context/AppContext";
+import React, { useState, useRef, useEffect } from "react";
+import { useChatStore, INITIAL_SOURCE, INITIAL_REFACTORED } from "@/store/useChatStore";
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
 import { useTheme } from "next-themes";
 
-import Input from "@/components/custom/Input";
-import RefactoredOutput from "@/components/custom/RefactoredOutput";
-import Terminal from "@/components/custom/Terminal";
+import Input from "@/components/chat/Input";
+import RefactoredOutput from "@/components/chat/RefactoredOutput";
+import Terminal from "@/components/chat/Terminal";
 
 export const mockHighlights = {
   inputRemoved: [1, 2, 3, 4, 5, 6, 7], 
   outputAdded: [1, 2, 3, 4, 5]         
 };
 
-export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  
-  const { sessions, updateSession, createSession } = useAppContext();
+export default function ChatWorkspace({ sessionId }: { sessionId: string }) {
+  const store = useChatStore();
+  const id = sessionId;
+
   const { resolvedTheme } = useTheme();
   
   const [mounted, setMounted] = useState(false);
@@ -33,12 +33,13 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   }, []);
 
   useEffect(() => {
-    if (id && !sessions[id]) {
-      createSession(id);
+    if (id && !store.sessions[id]) {
+      store.createSession(id);
     }
-  }, [id, sessions, createSession]);
+  }, [id, store.sessions, store.createSession]); // eslint-disable-line
 
-  const activeSession = sessions[id] || {
+  const activeSession = store.sessions[id] || {
+    id: id,
     sourceCode: INITIAL_SOURCE,
     refactoredOutput: "",
     activeStep: 0,
@@ -83,7 +84,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     const commandId = Date.now().toString();
     const newEntry = { id: commandId, type: 'command' as const, text: inputInstruction };
 
-    updateSession(id, (prev) => ({
+    store.updateSession(id, (prev) => ({
       inputInstruction: "",
       terminalEntries: [...prev.terminalEntries, newEntry],
       appState: "analyzing",
@@ -100,35 +101,35 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     timeoutRefs.current = [];
 
     timeoutRefs.current.push(setTimeout(() => {
-        updateSession(id, (prev) => ({
+        store.updateSession(id, (prev) => ({
           activeStep: 2,
           terminalEntries: [...prev.terminalEntries, { id: 'l1'+Date.now(), type: 'log', icon: 'Cpu', colorClass: 'text-[#56a8f5]', text: "[Logical Prover]: Analyzing abstract syntax tree... High cyclomatic risk detected in arithmetic sequences. Recommending methodical abstraction." }]
         }));
     }, 2000));
 
     timeoutRefs.current.push(setTimeout(() => {
-        updateSession(id, (prev) => ({
+        store.updateSession(id, (prev) => ({
           activeStep: 3,
           terminalEntries: [...prev.terminalEntries, { id: 'l2'+Date.now(), type: 'log', icon: 'AlertCircle', colorClass: 'text-[#2aacb8]', text: "[Adversarial Critic]: Warning — over-abstraction may induce slight overhead. Proceeding with micro-benchmark validations. Consensus required." }]
         }));
     }, 4500));
 
     timeoutRefs.current.push(setTimeout(() => {
-        updateSession(id, (prev) => ({
+        store.updateSession(id, (prev) => ({
           activeStep: 4,
           terminalEntries: [...prev.terminalEntries, { id: 'l3'+Date.now(), type: 'log', icon: 'Layers', colorClass: 'text-[#cf8e6d]', text: "[Consensus Judge]: Validating trade-offs. Abstraction paradigm approved for enhanced maintainability. Synthesizing refactored Java outputs." }]
         }));
     }, 7000));
 
     timeoutRefs.current.push(setTimeout(() => {
-      updateSession(id, (prev) => ({
+      store.updateSession(id, (prev) => ({
         activeStep: 5,
         terminalEntries: [...prev.terminalEntries, { id: 'l4'+Date.now(), type: 'log', icon: 'CheckCircle2', colorClass: 'text-[#27c93f]', text: "[System]: Refactoring cycle complete. New AST generated and serialized successfully." }],
         refactoredOutput: INITIAL_REFACTORED
       }));
 
       timeoutRefs.current.push(setTimeout(() => {
-        updateSession(id, {
+        store.updateSession(id, {
           appState: 'done',
           showFlowchartModal: false
         });
@@ -139,7 +140,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const stopAnalysis = () => {
     timeoutRefs.current.forEach(clearTimeout);
     timeoutRefs.current = [];
-    updateSession(id, {
+    store.updateSession(id, {
       appState: 'idle',
       activeStep: 0,
       showFlowchartModal: false
@@ -157,15 +158,16 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
             ${isDark ? 'bg-jb-panel border-[#393b40]' : 'bg-white border-[#dfdfdf]'}`}>
             <Input 
               sourceCode={sourceCode} 
-              setSourceCode={(val) => updateSession(id, { sourceCode: val })} 
+              setSourceCode={(val) => store.updateSession(id, { sourceCode: val })} 
               sourceError={localSourceError} 
               setSourceError={setLocalSourceError}
               inputInstruction={inputInstruction}
-              setInputInstruction={(val) => updateSession(id, { inputInstruction: val })}
+              setInputInstruction={(val) => store.updateSession(id, { inputInstruction: val })}
               inputError={localInputError}
               setInputError={setLocalInputError}
               startAnalysis={startAnalysis}
               stopAnalysis={stopAnalysis}
+              appState={appState}
             />
           </Panel>
           
@@ -175,11 +177,12 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
             ${isDark ? 'bg-jb-panel border-[#393b40]' : 'bg-white border-[#dfdfdf]'}`}>
             <RefactoredOutput 
               refactoredOutput={refactoredOutput} 
-              setRefactoredOutput={(val) => updateSession(id, { refactoredOutput: val })}
+              setRefactoredOutput={(val) => store.updateSession(id, { refactoredOutput: val })}
               showFlowchartModal={showFlowchartModal} 
-              setShowFlowchartModal={(val) => updateSession(id, { showFlowchartModal: val })}
+              setShowFlowchartModal={(val) => store.updateSession(id, { showFlowchartModal: val })}
               activeStep={activeStep} 
               isTerminalCollapsed={isTerminalCollapsed}
+              appState={appState}
             />
           </Panel>
         </PanelGroup>
@@ -198,7 +201,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         onResize={(panelSize) => {
           const isNowCollapsed = panelSize.inPixels <= 42; 
           if (isNowCollapsed !== isTerminalCollapsed) {
-            updateSession(id, { isTerminalCollapsed: isNowCollapsed });
+            store.updateSession(id, { isTerminalCollapsed: isNowCollapsed });
           }
         }}
         className={`rounded-xl border overflow-hidden shadow-xl transition-all duration-300 flex flex-col
@@ -208,9 +211,10 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         <Terminal 
           activeStep={activeStep} 
           isTerminalCollapsed={isTerminalCollapsed} 
-          setIsTerminalCollapsed={(val) => updateSession(id, { isTerminalCollapsed: val })}
+          setIsTerminalCollapsed={(val) => store.updateSession(id, { isTerminalCollapsed: val })}
           terminalEndRef={terminalEndRef} 
           terminalEntries={terminalEntries}
+          appState={appState}
         />
       </Panel>
     </PanelGroup>

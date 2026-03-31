@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { useAppContext } from "@/context/AppContext";
+import { useChatStore } from "@/store/useChatStore";
 
-import LoadingOverlay from "@/components/feature/LoadingOverlay";
-import Navbar from "@/components/custom/Navbar";
-import Sidebar from "@/components/custom/Sidebar";
+import LoadingOverlay from "@/components/layout/LoadingOverlay";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const { hasInitialLoaded, setHasInitialLoaded } = useAppContext();
+  const hasInitialLoaded = useChatStore((state) => state.hasInitialLoaded);
+  const setHasInitialLoaded = useChatStore((state) => state.setHasInitialLoaded);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

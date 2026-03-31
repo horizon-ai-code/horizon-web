@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import { Copy, Layers, X, FileCode2, Cpu, AlertCircle, CheckCircle2 } from "lucide-react";
 import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
-import { useAppContext } from "@/context/AppContext";
+import { AppState } from "@/store/useChatStore";
 import { useState, useEffect } from "react";
 import RefactoringReplay from "@/components/feature/RefactoringReplay";
 import InsightsPanel from "@/components/feature/InsightsPanel";
@@ -15,6 +15,7 @@ interface RefactoredOutputProps {
   setShowFlowchartModal: (val: boolean) => void;
   activeStep: number;
   isTerminalCollapsed: boolean;
+  appState: AppState;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,9 +63,9 @@ export default function RefactoredOutput({
   showFlowchartModal,
   setShowFlowchartModal,
   activeStep,
-  isTerminalCollapsed
+  isTerminalCollapsed,
+  appState
 }: RefactoredOutputProps) {
-  const { appState } = useAppContext();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   

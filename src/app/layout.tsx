@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Fira_Code, Poppins, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import Navbar from "@/components/custom/Navbar";
 import ScrollHandler from "@/components/feature/ScrollHandler";
-import { AppProvider } from "@/context/AppContext";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -36,10 +34,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AppProvider>
-            <ScrollHandler />
-            {children}
-          </AppProvider>
+          <ScrollHandler />
+          {children}
         </ThemeProvider>
       </body>
     </html>

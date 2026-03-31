@@ -4,8 +4,8 @@ import { useRef, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { FileCode2, Command, X } from "lucide-react";
 import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
-import RefactorInput from "@/components/custom/RefactorInput";
-import { useAppContext } from "@/context/AppContext";
+import RefactorInput from "@/components/chat/RefactorInput";
+import { AppState } from "@/store/useChatStore";
 
 interface InputProps {
   sourceCode: string;
@@ -18,6 +18,7 @@ interface InputProps {
   setInputError: (val: boolean) => void;
   startAnalysis: () => void;
   stopAnalysis: () => void;
+  appState: AppState;
 }
 
 export default function Input({
@@ -31,8 +32,8 @@ export default function Input({
   setInputError,
   startAnalysis,
   stopAnalysis,
+  appState,
 }: InputProps) {
-  const { appState } = useAppContext();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
@@ -170,6 +171,7 @@ export default function Input({
             startAnalysis={startAnalysis}
             stopAnalysis={stopAnalysis}
             isDark={isDark}
+            appState={appState}
           />
         </div>
         

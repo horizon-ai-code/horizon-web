@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import HorizonLogo from "./HorizonLogo";
+import HorizonLogo from "@/components/feature/HorizonLogo";
 
 interface LoadingOverlayProps {
   onComplete: () => void;
