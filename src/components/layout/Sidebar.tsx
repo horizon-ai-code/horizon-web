@@ -109,13 +109,15 @@ export default function Sidebar() {
         <button 
           onClick={handleNewSession}
           className={`w-full flex items-center gap-3 p-2 rounded-md transition-all duration-200 active:scale-[0.98]
-            ${isOpen ? 'justify-start' : 'justify-center'}
+            justify-start
             ${isDark 
               ? 'bg-[#3574f0]/10 text-[#3574f0] hover:bg-[#3574f0]/20 hover:ring-1 hover:ring-white/[0.05]' 
               : 'bg-[#3574f0]/10 text-[#3574f0] hover:bg-[#3574f0]/20 hover:ring-1 hover:ring-black/[0.05]'
             }`}
         >
-           <Plus size={18} strokeWidth={2} className="shrink-0" />
+           <span className="w-[18px] h-[18px] shrink-0 flex items-center justify-center">
+             <Plus size={18} strokeWidth={2} className="shrink-0" />
+           </span>
            <AnimatePresence>
              {isOpen && (
                <motion.span
