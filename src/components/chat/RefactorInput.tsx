@@ -2,6 +2,7 @@
 
 import { Command, Sparkles, Square } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
+import { motion, useAnimation } from "framer-motion";
 import { AppState } from "@/store/useChatStore";
 
 interface RefactorInputProps {
@@ -25,6 +26,16 @@ export default function RefactorInput({
   isDark,
   appState
 }: RefactorInputProps) {
+  const controls = useAnimation();
+  
+  useEffect(() => {
+    if (inputError) {
+      controls.start({
+        x: [0, -10, 10, -10, 10, 0],
+        transition: { duration: 0.4 }
+      });
+    }
+  }, [inputError, controls]);
   
   // Mapped state variables to match your branch's exact naming
   const [isChatFocused, setIsChatFocused] = useState(false);
@@ -57,7 +68,8 @@ export default function RefactorInput({
 
   return (
     <div className="absolute bottom-0 left-0 w-full pt-20 pb-6 px-6 z-30 pointer-events-none bg-gradient-to-t from-jb-bg via-jb-bg/90 to-transparent">
-      <div
+      <motion.div
+        animate={controls}
         onClick={() => chatInputRef.current?.focus()}
         className={`pointer-events-auto flex items-end gap-3 pl-4 pr-2 py-2 mx-auto ring-1 backdrop-blur-2xl shadow-2xl cursor-text
           ${isChatFocused ? 'max-w-full w-full' : 'max-w-xl'}
@@ -88,16 +100,19 @@ export default function RefactorInput({
         />
         <div className="h-[40px] flex items-center shrink-0">
           {appState === 'analyzing' ? (
-            <button onClick={stopAnalysis} className="h-[34px] px-5 rounded-full text-xs font-bold flex items-center gap-2 transition-transform cursor-pointer hover:scale-105 active:scale-95 bg-destructive/10 text-destructive hover:bg-destructive/20">
+            <button onClick={stopAnalysis} className="h-[34px] px-5 rounded-full text-xs font-bold flex items-center gap-2 transition-transform cursor-pointer hover:scale-105 active:scale-95 bg-destructive/10 text-destructive hover:bg-destructive/20 border-none outline-none focus:ring-0">
               <Square size={12} className="fill-current" /> Stop
             </button>
           ) : (
-            <button onClick={startAnalysis} className={`h-[34px] px-6 text-white rounded-full text-[13px] font-bold flex items-center gap-2 shadow-[0_4px_15px_rgba(53,116,240,0.25)] hover:shadow-[0_6px_20px_rgba(53,116,240,0.4)] transition-transform cursor-pointer hover:scale-105 active:scale-95 bg-jb-accent`}>
+            <button 
+              onClick={startAnalysis} 
+              className={`h-[34px] px-6 text-white rounded-full text-[13px] font-bold flex items-center gap-2 shadow-[0_4px_15px_rgba(53,116,240,0.25)] hover:shadow-[0_6px_20px_rgba(53,116,240,0.4)] transition-transform cursor-pointer hover:scale-105 active:scale-95 bg-jb-accent border-none outline-none focus:ring-0`}
+            >
               <Sparkles size={14} className="fill-current" /> Refactor
             </button>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

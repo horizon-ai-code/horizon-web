@@ -29,7 +29,7 @@ interface TerminalProps {
   isTerminalCollapsed: boolean;
   setIsTerminalCollapsed: (val: boolean) => void;
   terminalEndRef: React.RefObject<HTMLDivElement | null>;
-  terminalEntries?: {id: string, type: 'command' | 'log' | 'system', text: string, colorClass?: string, icon?: any}[];
+  terminalEntries?: {id: string, type: 'command' | 'log' | 'system' | 'error', text: string, colorClass?: string, icon?: any}[];
   appState: AppState;
 }
 
@@ -132,8 +132,19 @@ export default function Terminal({
                        />
                     </div>
                  );
-              }
-              return null;
+              } else if (entry.type === 'error') {
+                  return (
+                    <div key={entry.id} className={`mb-3 p-3 rounded-lg border flex items-start gap-3 animate-in fade-in slide-in-from-left-2 duration-300
+                      ${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+                       <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+                       <div className="flex flex-col gap-1">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-red-500">Execution Error</span>
+                          <span className={`text-[12px] leading-relaxed ${isDark ? 'text-red-200/80' : 'text-red-700'}`}>{entry.text}</span>
+                       </div>
+                    </div>
+                  );
+               }
+               return null;
            })}
 
 

@@ -42,6 +42,7 @@ export interface SessionData {
   isTerminalCollapsed: boolean;
   appState: AppState;
   showFlowchartModal: boolean;
+  error?: string;
 }
 
 const DEFAULT_SESSION: Omit<SessionData, "id"> = {
@@ -59,14 +60,28 @@ interface ChatStore {
   hasInitialLoaded: boolean;
   setHasInitialLoaded: (loaded: boolean) => void;
   sessions: Record<string, SessionData>;
+  draftSession: Omit<SessionData, "id">;
+  updateDraftSession: (data: Partial<Omit<SessionData, "id">> | ((prev: Omit<SessionData, "id">) => Partial<Omit<SessionData, "id">>)) => void;
+  resetDraftSession: () => void;
   updateSession: (id: string, data: Partial<SessionData> | ((prev: SessionData) => Partial<SessionData>)) => void;
-  createSession: (id: string) => void;
+  createSession: (id: string, initialData?: Partial<SessionData>) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
   hasInitialLoaded: false,
   setHasInitialLoaded: (loaded) => set({ hasInitialLoaded: loaded }),
   sessions: {},
+  draftSession: DEFAULT_SESSION,
+  
+  updateDraftSession: (arg) => set((state) => {
+    const data = typeof arg === "function" ? arg(state.draftSession) : arg;
+    return {
+      ...state,
+      draftSession: { ...state.draftSession, ...data }
+    };
+  }),
+
+  resetDraftSession: () => set((state) => ({ ...state, draftSession: DEFAULT_SESSION })),
   
   updateSession: (id, arg) => set((state) => {
     const existing = state.sessions[id] || { ...DEFAULT_SESSION, id };
@@ -83,13 +98,13 @@ export const useChatStore = create<ChatStore>((set) => ({
     };
   }),
 
-  createSession: (id) => set((state) => {
+  createSession: (id, initialData) => set((state) => {
     if (state.sessions[id]) return state;
     return {
       ...state,
       sessions: {
         ...state.sessions,
-        [id]: { ...DEFAULT_SESSION, id }
+        [id]: { ...DEFAULT_SESSION, id, ...initialData }
       }
     };
   }),

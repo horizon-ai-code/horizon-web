@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
+import ChatWorkspace from "@/components/chat/ChatWorkspace";
 
 export default function Home() {
-  const hash = Math.random().toString(36).substring(2, 10);
-  redirect(`/${hash}`);
+  return (
+    <ChatWorkspace sessionId={null} />
+  );
 }

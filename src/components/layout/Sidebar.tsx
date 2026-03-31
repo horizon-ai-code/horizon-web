@@ -15,8 +15,8 @@ import {
 
 // Mock sessions for demonstration
 const MOCK_SESSIONS = [
-  { id: '1a2b3c4d', title: 'Refactor Input.tsx', time: '2 hours ago' },
-  { id: '5e6f7g8h', title: 'Parse JSON Logic', time: 'Yesterday' }
+  { id: '1a2b3c4d', title: 'Refactor Input.tsx' },
+  { id: '5e6f7g8h', title: 'Parse JSON Logic' }
 ];
 
 export default function Sidebar() {
@@ -33,8 +33,7 @@ export default function Sidebar() {
   const isDark = mounted ? resolvedTheme === "dark" : true;
 
   const handleNewSession = () => {
-    const hash = Math.random().toString(36).substring(2, 10);
-    router.push(`/${hash}`);
+    router.push(`/`);
   };
 
   const springConfig = { type: "spring" as const, stiffness: 450, damping: 40, mass: 0.8 };
@@ -117,7 +116,6 @@ export default function Sidebar() {
                    <MessageSquare size={18} strokeWidth={1.5} className="shrink-0" />
                    <div className="flex flex-col items-start whitespace-nowrap overflow-hidden pr-6">
                      <span className="text-[13px] text-ellipsis overflow-hidden w-full text-left">{session.title}</span>
-                     <span className={`text-[11px] ${isDark ? 'text-jb-text/50' : 'text-[#818594]'}`}>{session.time}</span>
                    </div>
 
                    {/* Dropdown Menu */}

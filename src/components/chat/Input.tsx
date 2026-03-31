@@ -2,7 +2,8 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { FileCode2, Command, X } from "lucide-react";
+import { FileCode2, Command, X, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
 import RefactorInput from "@/components/chat/RefactorInput";
 import { AppState } from "@/store/useChatStore";
@@ -173,6 +174,29 @@ export default function Input({
             isDark={isDark}
             appState={appState}
           />
+
+          <AnimatePresence>
+            {appState === 'analyzing' && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center backdrop-blur-[2px] bg-jb-bg/30 transition-all duration-500"
+              >
+                <div className={`p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border ring-1 transition-all duration-300
+                  ${isDark ? 'bg-jb-panel/90 border-[#393b40]/50 ring-white/5' : 'bg-white/90 border-slate-200 ring-black/5'}`}>
+                  <div className="relative">
+                    <Loader2 size={32} className="text-jb-accent animate-spin" />
+                    <div className="absolute inset-0 bg-jb-accent/20 blur-xl rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <p className={`text-[14px] font-bold tracking-tight ${isDark ? 'text-jb-text' : 'text-slate-900'}`}>Swarm Analyzing...</p>
+                    <p className={`text-[11px] font-medium opacity-60 ${isDark ? 'text-jb-text' : 'text-slate-500'}`}>Synthesizing optimizations</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
       </div>

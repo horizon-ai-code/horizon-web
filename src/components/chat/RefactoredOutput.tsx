@@ -1,7 +1,8 @@
 "use client"
 
 import { useTheme } from "next-themes";
-import { Copy, Layers, X, FileCode2, Cpu, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Copy, Layers, X, FileCode2, Cpu, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
 import { AppState } from "@/store/useChatStore";
 import { useState, useEffect } from "react";
@@ -163,8 +164,18 @@ export default function RefactoredOutput({
             </p>
           </div>
         ) : appState === 'analyzing' ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 opacity-100 pointer-events-none z-10">
-            {/* The OrchestrationFlowchart handles the visuals here */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none z-10 transition-colors duration-300">
+             <div className={`flex items-center justify-center w-[88px] h-[88px] rounded-[32px] mb-6 shadow-2xl ring-1 transition-all duration-300 relative
+                ${isDark ? 'bg-jb-bg ring-jb-border' : 'bg-[#f7f8fa] ring-[#ebecf0]'}`}>
+                <Loader2 size={36} className="text-jb-accent animate-spin" strokeWidth={1.5} />
+                <div className="absolute inset-0 bg-jb-accent/10 blur-2xl rounded-full scale-150 animate-pulse"></div>
+             </div>
+             <p className={`text-[15px] font-semibold transition-colors ${isDark ? 'text-jb-text' : 'text-[#080808]'}`}>
+                Synthesis Engine Active
+             </p>
+             <p className={`text-[13px] mt-2 font-medium transition-colors ${isDark ? 'text-jb-text-muted' : 'text-[#818594]'}`}>
+                Generating consensus from Swarm nodes...
+             </p>
           </div>
         ) : (
           // 3. RENDER LOGIC UPDATE
