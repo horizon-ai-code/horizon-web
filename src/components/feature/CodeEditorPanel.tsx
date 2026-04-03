@@ -94,6 +94,8 @@ export default function CodeEditorPanel({
   const preRef = useRef<HTMLDivElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null); // NEW: Controls background scroll
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -110,6 +112,13 @@ export default function CodeEditorPanel({
     }
     if (gutterRef.current) gutterRef.current.scrollTop = scrollTop;
     if (bgRef.current) bgRef.current.scrollTop = scrollTop;
+
+    // Manage scrollbar visibility
+    setIsScrolling(true);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1000);
   };
 
   const lines = value.split('\n');
@@ -194,7 +203,8 @@ export default function CodeEditorPanel({
               wordSpacing: 'normal', 
               fontWeight: '500', 
               fontVariantLigatures: 'none', 
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              minWidth: 'max-content'
             }}
             codeTagProps={{
               style: {
@@ -207,6 +217,8 @@ export default function CodeEditorPanel({
                 wordSpacing: 'normal', 
                 fontWeight: 'normal', 
                 fontVariantLigatures: 'none',
+                minWidth: 'max-content',
+                display: 'inline-block'
               }
             }}
           >
@@ -233,7 +245,8 @@ export default function CodeEditorPanel({
                   wordSpacing: 'normal', 
                   fontWeight: '500', 
                   fontVariantLigatures: 'none', 
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  minWidth: 'max-content'
                 }}
                 codeTagProps={{
                   style: {
@@ -246,6 +259,8 @@ export default function CodeEditorPanel({
                     wordSpacing: 'normal', 
                     fontWeight: 'normal', 
                     fontVariantLigatures: 'none',
+                    minWidth: 'max-content',
+                    display: 'inline-block'
                   }
                 }}
               >
@@ -265,7 +280,7 @@ export default function CodeEditorPanel({
           onBlur={onBlur}
           spellCheck="false"
           placeholder={placeholder}
-          className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none border-none caret-jb-accent overflow-auto text-transparent selection:bg-jb-accent/20 font-mono"
+          className={`absolute inset-0 w-full h-full bg-transparent resize-none outline-none border-none caret-jb-accent overflow-auto text-transparent selection:bg-jb-accent/20 font-mono custom-chat-scrollbar ${isScrolling ? 'is-scrolling' : ''}`}
           style={{ 
             color: 'transparent', 
             WebkitTextFillColor: 'transparent', 

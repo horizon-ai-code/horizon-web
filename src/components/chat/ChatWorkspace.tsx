@@ -221,7 +221,10 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
             />
           </Panel>
           
-          <PanelResizeHandle className="w-[1px] bg-transparent hover:bg-jb-accent transition-all duration-200 cursor-col-resize z-20" />
+          <PanelResizeHandle 
+            draggable={false}
+            className="w-[1px] bg-transparent hover:bg-jb-accent transition-all duration-200 cursor-col-resize z-20 select-none touch-none" 
+          />
 
           <Panel defaultSize={50} minSize={20} className={`rounded-xl border overflow-hidden shadow-xl transition-colors duration-300
             ${isDark ? 'bg-jb-panel border-[#393b40]' : 'bg-white border-[#dfdfdf]'}`}>
@@ -239,7 +242,10 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
         </PanelGroup>
       </Panel>
 
-      <PanelResizeHandle className="h-[2px] shrink-0 bg-transparent hover:bg-jb-accent transition-all duration-200 cursor-row-resize z-20" />
+      <PanelResizeHandle 
+        draggable={false}
+        className="h-[2px] shrink-0 bg-transparent hover:bg-jb-accent transition-all duration-200 cursor-row-resize z-20 select-none touch-none" 
+      />
 
       <Panel 
         panelRef={terminalPanelRef}

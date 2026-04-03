@@ -65,6 +65,7 @@ export default function Terminal({
       
       <div 
         onClick={() => setIsTerminalCollapsed(!isTerminalCollapsed)}
+        draggable={false}
         className={`px-4 flex items-center justify-between border-b h-[40px] shrink-0 cursor-pointer select-none transition-colors duration-300 pr-4
           ${isDark ? 'bg-jb-bg border-jb-border' : 'bg-[#f7f8fa] border-[#ebecf0]'}`}
         title={isTerminalCollapsed ? "Expand Terminal" : "Collapse Terminal"}
