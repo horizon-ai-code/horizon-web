@@ -4,7 +4,8 @@ import { Command, Sparkles, Square } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { AppState, useChatStore } from "@/store/useChatStore";
+import type { AppState } from "@/types/session";
+import { useChatStore } from "@/store/useChatStore";
 
 interface RefactorInputProps {
   sessionId: string | null;

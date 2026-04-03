@@ -3,11 +3,11 @@
 import { useTheme } from "next-themes";
 import { Copy, Layers, X, FileCode2, Cpu, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
-import { AppState, OrchestrationResult } from "@/store/useChatStore";
+import CodeEditorPanel from "@/components/features/editor/CodeEditorPanel";
+import type { AppState, OrchestrationResult } from "@/types/session";
 import { useState, useEffect } from "react";
-import RefactoringReplay from "@/components/feature/RefactoringReplay";
-import InsightsPanel from "@/components/feature/InsightsPanel";
+import RefactoringReplay from "@/components/features/output/RefactoringReplay";
+import InsightsPanel from "@/components/features/output/InsightsPanel";
 
 interface RefactoredOutputProps {
   refactoredOutput: string;

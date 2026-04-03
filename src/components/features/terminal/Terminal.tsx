@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Terminal as TerminalIcon, Cpu, AlertCircle, Layers, CheckCircle2, ChevronDown, ChevronUp, X } from "lucide-react";
-import { AppState } from "@/store/useChatStore";
+import type { AppState } from "@/types/session";
 
 interface AgentTerminalLineProps {
   text: string;

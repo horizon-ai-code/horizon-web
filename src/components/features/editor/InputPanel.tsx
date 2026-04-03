@@ -4,9 +4,10 @@ import { useRef, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { FileCode2, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
-import RefactorInput from "@/components/chat/RefactorInput";
-import { AppState, OrchestrationResult } from "@/store/useChatStore";
+import CodeEditorPanel from "@/components/features/editor/CodeEditorPanel";
+import RefactorInput from "@/components/features/workspace/RefactorInput";
+import type { AppState } from "@/types/session";
+import type { OrchestrationResult } from "@/types/session";
 
 interface InputProps {
   sessionId: string | null;
@@ -25,7 +26,7 @@ interface InputProps {
   orchestrationResult: OrchestrationResult;
 }
 
-export default function Input({
+export default function InputPanel({
   sessionId,
   sourceCode,
   setSourceCode,

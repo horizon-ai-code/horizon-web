@@ -1,7 +1,7 @@
 "use client"
 
 import { Menu } from "lucide-react";
-import ThemeToggle from "@/components/theme/ThemeToggle";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 

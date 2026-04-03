@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Fira_Code, Poppins, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import ScrollHandler from "@/components/feature/ScrollHandler";
+import ScrollHandler from "@/components/ui/ScrollHandler";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});

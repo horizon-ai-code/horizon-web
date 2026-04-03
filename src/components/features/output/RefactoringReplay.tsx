@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { ChevronLeft, ChevronRight, FastForward } from 'lucide-react';
-import { jetbrainsTheme, intellijLightTheme } from './CodeEditorPanel';
-import { ReplayStep } from '@/store/useChatStore';
+import { jetbrainsTheme, intellijLightTheme } from '@/components/features/editor/CodeEditorPanel';
+import type { ReplayStep } from '@/types/insights';
 
 // Themes are imported from CodeEditorPanel for consistency
 

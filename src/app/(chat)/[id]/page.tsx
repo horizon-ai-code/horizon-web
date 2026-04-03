@@ -1,4 +1,4 @@
-import ChatWorkspace from "@/components/chat/ChatWorkspace";
+import ChatWorkspace from "@/components/features/workspace/ChatWorkspace";
 
 export default async function SessionPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

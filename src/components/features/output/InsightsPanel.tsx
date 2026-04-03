@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
 import { Sparkles, Layers, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { InsightMetric } from '@/store/useChatStore';
+import type { InsightMetric } from '@/types/insights';
 
 interface InsightsPanelProps {
   metrics: InsightMetric[];

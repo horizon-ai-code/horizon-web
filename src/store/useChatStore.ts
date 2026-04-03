@@ -1,122 +1,46 @@
 import { create } from 'zustand';
 
-// ── WebSocket Contract Types (from horizon-api-docs.pdf pp. 7-8) ──────────
+// ── Import types from dedicated modules ───────────────────────────────────────
+import type { AppState, SessionData, TerminalEntry, OrchestrationResult } from '@/types/session';
+import type { ReplayStep, InsightMetric } from '@/types/insights';
+import type {
+  RefactorRequest,
+  StatusMessage,
+  ResultMessage,
+  ComplexityResult,
+  PydanticError,
+  ValidationErrorMessage,
+  MalformedJsonErrorMessage,
+  ErrorMessage,
+  ServerMessage,
+} from '@/types/websocket';
 
-export interface RefactorRequest {
-  code: string;
-  user_instruction: string;
-}
+// ── Import constants ──────────────────────────────────────────────────────────
+import { INITIAL_SOURCE, INITIAL_REFACTORED, EMPTY_ORCHESTRATION_RESULT } from '@/lib/constants';
 
-export interface StatusMessage {
-  type: "status";
-  role: "Planner" | "Generator" | "Judge" | "Validator";
-  content: string;
-}
-
-export interface ComplexityResult {
-  complexity_score: number | null;
-  structure_tier: string;
-  is_fallback: boolean | null;
-}
-
-export interface ResultMessage {
-  type: "result";
-  code: string;
-  complexity: ComplexityResult;
-  insights: string;
-}
-
-export interface PydanticError {
-  type: string;
-  loc: string[];
-  msg: string;
-  input: unknown;
-}
-
-export interface ValidationErrorMessage {
-  type: "error";
-  message: "Invalid data format";
-  details: PydanticError[];
-}
-
-export interface MalformedJsonErrorMessage {
-  type: "error";
-  message: "Malformed JSON payload";
-  details: string;
-}
-
-export type ErrorMessage = ValidationErrorMessage | MalformedJsonErrorMessage;
-export type ServerMessage = StatusMessage | ResultMessage | ErrorMessage;
-
-export type AppState = "idle" | "analyzing" | "done";
-
-export interface ReplayStep {
-  title: string;
-  description: string;
-  codeSnapshot: string;
-  issueLines: number[];
-  addedLines: number[];
-  removedLines: number[];
-}
-
-export interface InsightMetric {
-  title: string;
-  before: string;
-  after: string;
-  direction: 'up' | 'down' | 'neutral';
-  iconKey?: string;
-}
-
-export interface OrchestrationResult {
-  replaySteps: ReplayStep[];
-  metrics: InsightMetric[];
-  summary: string;
-  diffHighlights: {
-    added: number[];
-    removed: number[];
-  };
-  complexity?: ComplexityResult;
-  insights?: string;
-}
-
-export const EMPTY_ORCHESTRATION_RESULT: OrchestrationResult = {
-  replaySteps: [],
-  metrics: [],
-  summary: "",
-  diffHighlights: {
-    added: [],
-    removed: [],
-  },
+// ── Re-export everything for backward compatibility ───────────────────────────
+// Consumers that already import from '@/store/useChatStore' will continue to work.
+export type {
+  AppState,
+  SessionData,
+  TerminalEntry,
+  OrchestrationResult,
+  ReplayStep,
+  InsightMetric,
+  RefactorRequest,
+  StatusMessage,
+  ResultMessage,
+  ComplexityResult,
+  PydanticError,
+  ValidationErrorMessage,
+  MalformedJsonErrorMessage,
+  ErrorMessage,
+  ServerMessage,
 };
 
-export const INITIAL_SOURCE = ``;
+export { INITIAL_SOURCE, INITIAL_REFACTORED, EMPTY_ORCHESTRATION_RESULT };
 
-export const INITIAL_REFACTORED = ``;
-
-export interface TerminalEntry {
-  id: string;
-  type: 'command' | 'log' | 'system' | 'error';
-  text: string;
-  colorClass?: string;
-  icon?: string;
-}
-
-export interface SessionData {
-  id: string;
-  title: string;
-  createdAt: number;
-  updatedAt: number;
-  sourceCode: string;
-  refactoredOutput: string;
-  activeStep: number;
-  inputInstruction: string;
-  terminalEntries: TerminalEntry[];
-  isTerminalCollapsed: boolean;
-  appState: AppState;
-  showFlowchartModal: boolean;
-  orchestrationResult: OrchestrationResult;
-  error?: string;
-}
+// ── Internal Helpers ──────────────────────────────────────────────────────────
 
 const DEFAULT_SESSION: Omit<SessionData, "id"> = {
   title: "New Session",
@@ -141,6 +65,8 @@ const getSessionTitleFromPrompt = (prompt: string) => {
   return trimmed.length > 48 ? `${trimmed.slice(0, 48)}...` : trimmed;
 };
 
+// ── Store Interface ───────────────────────────────────────────────────────────
+
 interface ChatStore {
   hasInitialLoaded: boolean;
   setHasInitialLoaded: (loaded: boolean) => void;
@@ -158,6 +84,8 @@ interface ChatStore {
   renameSession: (id: string, title: string) => void;
   deleteSession: (id: string) => void;
 }
+
+// ── Zustand Store ─────────────────────────────────────────────────────────────
 
 export const useChatStore = create<ChatStore>((set) => ({
   hasInitialLoaded: false,

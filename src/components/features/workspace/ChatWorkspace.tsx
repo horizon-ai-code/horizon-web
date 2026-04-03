@@ -1,15 +1,16 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";
-import { useChatStore, INITIAL_SOURCE, EMPTY_ORCHESTRATION_RESULT, SessionData } from "../../store/useChatStore";
+import { useChatStore, INITIAL_SOURCE, EMPTY_ORCHESTRATION_RESULT } from "@/store/useChatStore";
+import type { SessionData } from "@/types/session";
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 import { useTheme } from "next-themes";
 import { useOrchestrationSocket } from "@/hooks/useOrchestrationSocket";
 
-import Input from "@/components/chat/Input";
-import RefactoredOutput from "@/components/chat/RefactoredOutput";
-import Terminal from "@/components/chat/Terminal";
+import InputPanel from "@/components/features/editor/InputPanel";
+import RefactoredOutput from "@/components/features/output/RefactoredOutput";
+import Terminal from "@/components/features/terminal/Terminal";
 
 export default function ChatWorkspace({ sessionId }: { sessionId: string | null }) {
   const store = useChatStore();
@@ -203,7 +204,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
         <PanelGroup orientation="horizontal" className="gap-2">
           <Panel defaultSize={50} minSize={20} className={`rounded-xl border overflow-hidden shadow-xl transition-colors duration-300
             ${isDark ? 'bg-jb-panel border-[#393b40]' : 'bg-white border-[#dfdfdf]'}`}>
-            <Input 
+            <InputPanel 
               sessionId={id}
               sourceCode={sourceCode} 
               setSourceCode={(val) => updateLocal({ sourceCode: val })} 

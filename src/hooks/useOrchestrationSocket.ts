@@ -1,17 +1,10 @@
 "use client";
 
 import { useRef, useCallback, useState, useEffect } from "react";
-import type {
-  RefactorRequest,
-  ServerMessage,
-  StatusMessage,
-  ResultMessage,
-  TerminalEntry,
-  SessionData,
-  OrchestrationResult,
-  ComplexityResult,
-} from "@/store/useChatStore";
-import { useChatStore, EMPTY_ORCHESTRATION_RESULT } from "@/store/useChatStore";
+import type { RefactorRequest, ServerMessage, StatusMessage, ResultMessage, ComplexityResult } from "@/types/websocket";
+import type { TerminalEntry, SessionData, OrchestrationResult } from "@/types/session";
+import { useChatStore } from "@/store/useChatStore";
+import { EMPTY_ORCHESTRATION_RESULT } from "@/lib/constants";
 
 // ── Role → Terminal Display Mapping ──────────────────────────────────────────
 // Maps backend agent roles to the flowchart step index and terminal styling.
