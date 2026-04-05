@@ -51,19 +51,21 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
             const MetricIcon = (m.iconKey && metricIconMap[m.iconKey]) || Sparkles;
             const isIncrease = m.direction === 'up';
             const isDecrease = m.direction === 'down';
-            const color = isIncrease
+            const isDynamicColor = displayTitle !== 'Cyclomatic Complexity';
+
+            const color = (isIncrease && isDynamicColor)
               ? (isDark ? 'text-green-400' : 'text-green-600')
-              : isDecrease
+              : (isDecrease && isDynamicColor)
                 ? (isDark ? 'text-red-400' : 'text-red-600')
                 : (isDark ? 'text-blue-400' : 'text-blue-600');
-            const bg = isIncrease
+            const bg = (isIncrease && isDynamicColor)
               ? (isDark ? 'bg-green-500/10' : 'bg-green-500/5')
-              : isDecrease
+              : (isDecrease && isDynamicColor)
                 ? (isDark ? 'bg-red-500/10' : 'bg-red-500/5')
                 : (isDark ? 'bg-blue-500/10' : 'bg-blue-500/5');
-            const border = isIncrease
+            const border = (isIncrease && isDynamicColor)
               ? (isDark ? 'border-green-500/20' : 'border-green-500/10')
-              : isDecrease
+              : (isDecrease && isDynamicColor)
                 ? (isDark ? 'border-red-500/20' : 'border-red-500/10')
                 : (isDark ? 'border-blue-500/20' : 'border-blue-500/10');
 
