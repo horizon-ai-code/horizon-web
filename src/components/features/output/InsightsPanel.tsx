@@ -75,7 +75,7 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
                 </div>
                 <div>
                   <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-slate-500'}`}>{displayTitle}</p>
-                  <p className={`text-[16px] font-bold ${isDark ? 'text-gray-200' : 'text-slate-900'}`}>{m.before} -&gt; {m.after}</p>
+                  <p className={`text-[16px] font-bold ${isDark ? 'text-gray-200' : 'text-slate-900'}`}>{m.after}</p>
                 </div>
               </div>
             );

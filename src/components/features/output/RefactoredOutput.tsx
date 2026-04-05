@@ -109,15 +109,7 @@ export default function RefactoredOutput({
         
         <div className="flex items-center h-full pt-1.5 pb-1 px-2 gap-1 overflow-x-auto custom-chat-scrollbar">
 
-          <button 
-            onClick={() => setRightPanelMode('replay')}
-            className={`h-full px-3 flex items-center gap-2 text-[12px] font-medium transition-all cursor-pointer rounded-md 
-              ${rightPanelMode === 'replay' 
-                ? (isDark ? 'bg-jb-panel text-jb-text border-[#393b40]/50 shadow-sm' : 'bg-white text-[#080808] border-[#dfdfdf] shadow-sm') 
-                : (isDark ? 'text-jb-text opacity-70 hover:opacity-100 hover:bg-jb-panel/40 border-transparent' : 'text-[#818594] hover:bg-[#ebecf0] hover:text-[#080808]')}`}
-          >
-            Replay++
-          </button>
+
           
           <button 
             onClick={() => setRightPanelMode('insights')}
