@@ -1,11 +1,21 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, Plus, MessageSquare, MoreVertical, Pencil, Trash, Check, X } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useChatStore } from "@/store/useChatStore";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 import {
   DropdownMenu,
@@ -26,15 +36,30 @@ export default function Sidebar() {
   const sessions = useChatStore((state) => state.sessions);
   const renameSession = useChatStore((state) => state.renameSession);
   const deleteSession = useChatStore((state) => state.deleteSession);
+  const fetchHistory = useChatStore((state) => state.fetchHistory);
 
-  const recentSessions = Object.values(sessions).sort((a, b) => b.updatedAt - a.updatedAt);
+  // ── Confirm Dialog State ──────────────────────────────────────────────────
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogSessionId, setDialogSessionId] = useState<string | null>(null);
+  const [dialogAction, setDialogAction] = useState<"delete" | "leave" | "switch">("delete");
+  const [switchTargetId, setSwitchTargetId] = useState<string | null>(null);
+
+  const recentSessions = Object.values(sessions)
+    .filter(s => s && s.id && s.id !== 'draft')
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   const activeId = typeof params.id === "string" ? params.id : "";
   const activeSession = activeId ? sessions[activeId] : undefined;
   const isActiveAnalyzing = activeSession?.appState === "analyzing";
 
+  // Resolve dialog session title for display
+  const dialogSessionTitle = dialogSessionId
+    ? sessions[dialogSessionId]?.title ?? "this session"
+    : "this session";
+
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    requestAnimationFrame(() => setMounted(true));
+    fetchHistory();
+  }, [fetchHistory]);
 
   useEffect(() => {
     if (!editingSessionId) return;
@@ -49,28 +74,16 @@ export default function Sidebar() {
 
   const isDark = mounted ? resolvedTheme === "dark" : true;
 
-  const handleNewSession = () => {
-    if (isActiveAnalyzing) {
-      const shouldLeave = window.confirm("A refactor is currently running. Leave this session and stop generation?");
-      if (!shouldLeave) return;
-    }
-
-    if (editingSessionId) {
-      cancelInlineRename();
-    }
-
-    router.push(`/`);
-  };
-
+  // ── Rename Helpers ──────────────────────────────────────────────────────────
   const startInlineRename = (sessionId: string, currentTitle: string) => {
     setEditingSessionId(sessionId);
     setEditValue(currentTitle);
   };
 
-  const cancelInlineRename = () => {
+  const cancelInlineRename = useCallback(() => {
     setEditingSessionId(null);
     setEditValue("");
-  };
+  }, []);
 
   const saveInlineRename = (sessionId: string) => {
     const trimmed = editValue.trim();
@@ -80,6 +93,70 @@ export default function Sidebar() {
     cancelInlineRename();
   };
 
+  // ── Dialog Helpers ──────────────────────────────────────────────────────────
+  const closeDialog = useCallback(() => {
+    setDialogOpen(false);
+    setDialogSessionId(null);
+    setSwitchTargetId(null);
+  }, []);
+
+  const openDialog = useCallback(
+    (action: "delete" | "leave" | "switch", sessionId: string, switchTo?: string) => {
+      setDialogAction(action);
+      setDialogSessionId(sessionId);
+      setSwitchTargetId(switchTo ?? null);
+      setDialogOpen(true);
+    },
+    []
+  );
+
+  const handleDialogConfirm = useCallback(() => {
+    if (!dialogSessionId) return;
+
+    if (dialogAction === "delete") {
+      deleteSession(dialogSessionId);
+      if (editingSessionId === dialogSessionId) {
+        cancelInlineRename();
+      }
+      if (activeId === dialogSessionId) {
+        router.push("/");
+      }
+    } else if (dialogAction === "leave") {
+      if (editingSessionId) {
+        cancelInlineRename();
+      }
+      router.push("/");
+    } else if (dialogAction === "switch" && switchTargetId) {
+      router.push(`/${switchTargetId}`);
+    }
+
+    closeDialog();
+  }, [
+    dialogSessionId,
+    dialogAction,
+    switchTargetId,
+    activeId,
+    editingSessionId,
+    deleteSession,
+    router,
+    cancelInlineRename,
+    closeDialog
+  ]);
+
+  // ── Navigation Helpers ──────────────────────────────────────────────────────
+  const handleNewSession = () => {
+    if (isActiveAnalyzing) {
+      openDialog("leave", activeId);
+      return;
+    }
+
+    if (editingSessionId) {
+      cancelInlineRename();
+    }
+
+    router.push(`/`);
+  };
+
   const springConfig = { type: "spring" as const, stiffness: 450, damping: 40, mass: 0.8 };
 
   return (
@@ -87,7 +164,7 @@ export default function Sidebar() {
       initial={false}
       animate={{ width: isOpen ? 240 : 48 }}
       transition={springConfig}
-      className={`shrink-0 border-r flex flex-col z-20 overflow-hidden
+      className={`shrink-0 border-r flex flex-col z-20 h-full overflow-hidden
       ${isDark ? 'border-jb-border/40 bg-jb-panel' : 'border-[#ebecf0] bg-[#f7f8fa]'}`}
     >
       
@@ -102,7 +179,7 @@ export default function Sidebar() {
       </div>
 
       {/* Main Sidebar Area */}
-      <div className={`flex flex-col w-full px-2 py-4 gap-2 flex-grow overflow-y-auto overflow-x-hidden border-b
+      <div className={`flex flex-col w-full px-2 py-4 gap-2 flex-1 min-h-0 overflow-y-auto custom-chat-scrollbar overflow-x-hidden border-b
         ${isDark ? 'border-jb-border/20' : 'border-[#ebecf0]/60'}`}>
         
         {/* New Session Button */}
@@ -141,7 +218,7 @@ export default function Sidebar() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={springConfig}
-              className="flex flex-col gap-1 mt-2 overflow-hidden"
+              className="flex flex-col gap-1 mt-2"
             >
                <div className={`px-2 py-1 text-[11px] font-medium uppercase tracking-wider ${isDark ? 'text-jb-text/50' : 'text-[#818594]'}`}>
                  Recent
@@ -168,8 +245,8 @@ export default function Sidebar() {
                       }
 
                       if (isActiveAnalyzing && activeId && activeId !== session.id) {
-                        const shouldLeave = window.confirm("A refactor is currently running. Switch sessions and stop generation?");
-                        if (!shouldLeave) return;
+                        openDialog("switch", activeId, session.id);
+                        return;
                       }
 
                       router.push(`/${session.id}`);
@@ -209,6 +286,7 @@ export default function Sidebar() {
                      <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                        <button
                          onClick={() => saveInlineRename(session.id)}
+                         onMouseDown={(e) => e.preventDefault()}
                          disabled={!editValue.trim()}
                          className={`p-1 rounded-md transition-colors ${editValue.trim() ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-400/40 cursor-not-allowed'}`}
                          aria-label="Save rename"
@@ -217,6 +295,7 @@ export default function Sidebar() {
                        </button>
                        <button
                          onClick={cancelInlineRename}
+                         onMouseDown={(e) => e.preventDefault()}
                          className={`p-1 rounded-md transition-colors ${isDark ? 'text-jb-text/60 hover:text-jb-text hover:bg-black/20' : 'text-[#080808]/60 hover:text-[#080808] hover:bg-black/5'}`}
                          aria-label="Cancel rename"
                        >
@@ -242,19 +321,11 @@ export default function Sidebar() {
                            </DropdownMenuItem>
                            <DropdownMenuItem
                              className="gap-2 text-red-500 focus:text-red-500 cursor-pointer focus:bg-red-500/10"
-                             onClick={() => {
-                               if (isActiveAnalyzing && activeId === session.id) {
-                                 const shouldDelete = window.confirm("This session is still generating. Delete it and stop generation?");
-                                 if (!shouldDelete) return;
-                               }
-
-                               deleteSession(session.id);
-                               if (editingSessionId === session.id) {
-                                 cancelInlineRename();
-                               }
-                               if (activeId === session.id) {
-                                 router.push("/");
-                               }
+                             onClick={(e) => {
+                               e.preventDefault();
+                               e.stopPropagation();
+                               // Small timeout to escape the dropdown's focus/unmount cycle
+                               setTimeout(() => openDialog("delete", session.id), 0);
                              }}
                            >
                              <Trash size={14} />
@@ -272,7 +343,32 @@ export default function Sidebar() {
         </AnimatePresence>
       </div>
 
-      <div className="flex-1" />
+      {/* Delete / Leave / Switch Confirmation Dialog */}
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {dialogAction === "leave" || dialogAction === "switch" || (dialogAction === "delete" && isActiveAnalyzing && dialogSessionId === activeId) ? (
+                <>
+                  <span className="font-medium text-amber-400/90">&ldquo;{dialogSessionTitle}&rdquo;</span>{" "}
+                  is still generating. Deleting it will stop all active processes. This action cannot be undone.
+                </>
+              ) : (
+                <>
+                  This will permanently delete{" "}
+                  <span className="font-medium text-jb-text/80">&ldquo;{dialogSessionTitle}&rdquo;</span>{" "}
+                  and its outputs. This action cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDialogConfirm}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }

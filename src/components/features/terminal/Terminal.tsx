@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Terminal as TerminalIcon, Cpu, AlertCircle, Layers, CheckCircle2, ChevronDown, ChevronUp, X } from "lucide-react";
-import { AppState } from "@/store/useChatStore";
+import { Cpu, AlertCircle, Layers, CheckCircle2, ChevronDown, ChevronUp, X, Clock, FileCode2 } from "lucide-react";
+import type { AppState } from "@/types/session";
 
 interface AgentTerminalLineProps {
   text: string;
   colorClass: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon: any;
+  icon: React.ElementType;
 }
 
 const AgentTerminalLine = ({ text, colorClass, icon: Icon }: AgentTerminalLineProps) => {
@@ -29,15 +28,17 @@ interface TerminalProps {
   isTerminalCollapsed: boolean;
   setIsTerminalCollapsed: (val: boolean) => void;
   terminalEndRef: React.RefObject<HTMLDivElement | null>;
-  terminalEntries?: {id: string, type: 'command' | 'log' | 'system' | 'error', text: string, colorClass?: string, icon?: any}[];
+  terminalEntries?: {id: string, type: 'command' | 'log' | 'system' | 'error', text: string, colorClass?: string, icon?: string}[];
   appState: AppState;
 }
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, React.ElementType> = {
   Cpu: Cpu,
   AlertCircle: AlertCircle,
   Layers: Layers,
-  CheckCircle2: CheckCircle2
+  CheckCircle2: CheckCircle2,
+  Clock: Clock,
+  FileCode2: FileCode2
 };
 
 export default function Terminal({
@@ -52,7 +53,7 @@ export default function Terminal({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    requestAnimationFrame(() => setMounted(true));
   }, []);
 
   const isDark = mounted ? resolvedTheme === "dark" : true;
@@ -65,6 +66,7 @@ export default function Terminal({
       
       <div 
         onClick={() => setIsTerminalCollapsed(!isTerminalCollapsed)}
+        draggable={false}
         className={`px-4 flex items-center justify-between border-b h-[40px] shrink-0 cursor-pointer select-none transition-colors duration-300 pr-4
           ${isDark ? 'bg-jb-bg border-jb-border' : 'bg-[#f7f8fa] border-[#ebecf0]'}`}
         title={isTerminalCollapsed ? "Expand Terminal" : "Collapse Terminal"}
@@ -74,6 +76,21 @@ export default function Terminal({
             ${isDark ? 'text-jb-text opacity-90' : 'text-[#080808] opacity-80'}`}>
              Terminal
           </h3>
+
+          {appState === 'waiting' && (
+            <div className={`px-2 py-0.5 rounded text-[10px] font-bold border animate-pulse transition-colors
+              ${isDark ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-yellow-50 text-yellow-600 border-yellow-200'}`}>
+              BUSY
+            </div>
+          )}
+
+          {appState === 'analyzing' && (
+            <div className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors
+              ${isDark ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-cyan-50 text-cyan-600 border-cyan-200'}`}>
+              ANALYZING
+            </div>
+          )}
+
           <div className={`h-[20px] w-[1px] ${isDark ? 'bg-[#393b40]/60' : 'bg-[#ebecf0]'}`}></div>
           
           <div className="flex items-center h-full pt-1.5 pb-1">
@@ -89,10 +106,18 @@ export default function Terminal({
         </div>
         
         <div className="flex items-center gap-4">
-          {appState === 'analyzing' && (
+          {(appState === 'analyzing' || appState === 'waiting') && (
             <span className="flex h-2.5 w-2.5 relative">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isDark ? 'bg-cyan-400' : 'bg-cyan-500'}`}></span>
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isDark ? 'bg-cyan-400' : 'bg-cyan-500'}`}></span>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                appState === 'waiting' 
+                  ? (isDark ? 'bg-yellow-400' : 'bg-yellow-500') 
+                  : (isDark ? 'bg-cyan-400' : 'bg-cyan-500')
+              }`}></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                appState === 'waiting'
+                  ? (isDark ? 'bg-yellow-400' : 'bg-yellow-500')
+                  : (isDark ? 'bg-cyan-400' : 'bg-cyan-500')
+              }`}></span>
             </span>
           )}
           {isTerminalCollapsed ? <ChevronUp size={18} className={isDark ? 'text-gray-500' : 'text-slate-400'}/> : <ChevronDown size={18} className={isDark ? 'text-gray-500' : 'text-slate-400'}/>}
@@ -124,10 +149,10 @@ export default function Terminal({
                  );
               } else if (entry.type === 'log') {
                  return (
-                    <div key={entry.id} className="mb-3">
-                       <AgentTerminalLine 
-                          icon={ICON_MAP[entry.icon] || Cpu} 
-                          colorClass={entry.colorClass || "text-jb-accent"} 
+                     <div key={entry.id} className="mb-3">
+                        <AgentTerminalLine 
+                           icon={(entry.icon ? ICON_MAP[entry.icon] : undefined) || Cpu} 
+                           colorClass={entry.colorClass || "text-jb-accent"} 
                           text={entry.text} 
                        />
                     </div>

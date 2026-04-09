@@ -4,9 +4,10 @@ import { useRef, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { FileCode2, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import CodeEditorPanel from "@/components/feature/CodeEditorPanel";
-import RefactorInput from "@/components/chat/RefactorInput";
-import { AppState, OrchestrationResult } from "@/store/useChatStore";
+import CodeEditorPanel from "@/components/features/editor/CodeEditorPanel";
+import RefactorInput from "@/components/features/workspace/RefactorInput";
+import type { AppState } from "@/types/session";
+import type { OrchestrationResult } from "@/types/session";
 
 interface InputProps {
   sessionId: string | null;
@@ -25,7 +26,7 @@ interface InputProps {
   orchestrationResult: OrchestrationResult;
 }
 
-export default function Input({
+export default function InputPanel({
   sessionId,
   sourceCode,
   setSourceCode,
@@ -52,7 +53,7 @@ export default function Input({
   }, [sourceCode]);
 
   useEffect(() => {
-    setMounted(true);
+    requestAnimationFrame(() => setMounted(true));
     
     // Function to check clipboard
     const checkClipboard = async () => {
@@ -124,10 +125,12 @@ export default function Input({
           </div>
           
           <div className="flex items-center gap-3 pr-2">
-            <div className={`text-[10px] font-bold px-2 py-0.5 rounded border shadow-sm flex items-center gap-1 transition-colors duration-300
-              ${isDark ? 'bg-jb-accent/10 text-jb-accent border-jb-accent/30' : 'bg-[#3574f0]/10 text-[#3574f0] border-[#3574f0]/20'}`}>
-              <span className={isDark ? "text-jb-accent" : "text-[#3574f0]"}>#</span> {lineCount} {lineCount === 1 ? 'LINE' : 'LINES'}
-            </div>
+            {sourceCode.trim() !== "" && (
+              <div className={`text-[10px] font-bold px-2 py-0.5 rounded border shadow-sm flex items-center gap-1 transition-all duration-300
+                ${isDark ? 'bg-jb-accent/10 text-jb-accent border-jb-accent/30' : 'bg-[#3574f0]/10 text-[#3574f0] border-[#3574f0]/20'}`}>
+                <span className={isDark ? "text-jb-accent" : "text-[#3574f0]"}>#</span> {lineCount} {lineCount === 1 ? 'LINE' : 'LINES'}
+              </div>
+            )}
           </div>
         </div>
         
@@ -140,10 +143,10 @@ export default function Input({
                 <FileCode2 size={36} className={isDark ? "text-[#548af7]/60" : "text-[#3574f0]/60"} strokeWidth={1.5} />
               </div>
               <p className={`text-[15px] font-semibold transition-colors ${isDark ? 'text-jb-text' : 'text-[#080808]'}`}>
-                Paste your Java code snippet
+                Paste your source code here...
               </p>
               <p className={`text-[13px] mt-2 font-medium max-w-sm transition-colors ${isDark ? 'text-jb-text-muted' : 'text-[#818594]'}`}>
-                Best for loops, functions, and logic blocks. No class/package declarations needed.
+                Best for loops, functions, and logic blocks.
               </p>
             </div>
           )}
@@ -165,16 +168,7 @@ export default function Input({
             bottomPadding="240px"
           />
           
-          {/* Ghost Text Hint */}
-          {isEditorFocused && clipboardPreview && !sourceCode && (
-            <div className="absolute bottom-4 left-14 z-20 pointer-events-none animate-pulse">
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border backdrop-blur-md transition-all duration-300
-                ${isDark ? 'bg-jb-accent/10 border-jb-accent/20' : 'bg-[#3574f0]/5 border-[#3574f0]/15'}`}>
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-jb-accent' : 'text-[#3574f0]'}`}>Tip</span>
-                <span className={`text-[11px] font-medium ${isDark ? 'text-jb-accent/80' : 'text-[#3574f0]/80'}`}>Press <kbd className={`font-sans px-1.5 py-0.5 rounded border ${isDark ? 'border-jb-accent/30 bg-jb-accent/5' : 'border-[#3574f0]/20 bg-[#3574f0]/5'} text-[10px]`}>Tab</kbd> to paste copied code</span>
-              </div>
-            </div>
-          )}
+
           <RefactorInput 
             sessionId={sessionId}
             sourceCode={sourceCode}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
 import { Sparkles, Layers, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { InsightMetric } from '@/store/useChatStore';
+import type { InsightMetric } from '@/types/insights';
 
 interface InsightsPanelProps {
   metrics: InsightMetric[];
@@ -22,7 +22,7 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    requestAnimationFrame(() => setMounted(true));
   }, []);
 
   const isDark = mounted ? resolvedTheme === "dark" : true;
@@ -51,19 +51,21 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
             const MetricIcon = (m.iconKey && metricIconMap[m.iconKey]) || Sparkles;
             const isIncrease = m.direction === 'up';
             const isDecrease = m.direction === 'down';
-            const color = isIncrease
+            const isDynamicColor = displayTitle !== 'Cyclomatic Complexity';
+
+            const color = (isIncrease && isDynamicColor)
               ? (isDark ? 'text-green-400' : 'text-green-600')
-              : isDecrease
+              : (isDecrease && isDynamicColor)
                 ? (isDark ? 'text-red-400' : 'text-red-600')
                 : (isDark ? 'text-blue-400' : 'text-blue-600');
-            const bg = isIncrease
+            const bg = (isIncrease && isDynamicColor)
               ? (isDark ? 'bg-green-500/10' : 'bg-green-500/5')
-              : isDecrease
+              : (isDecrease && isDynamicColor)
                 ? (isDark ? 'bg-red-500/10' : 'bg-red-500/5')
                 : (isDark ? 'bg-blue-500/10' : 'bg-blue-500/5');
-            const border = isIncrease
+            const border = (isIncrease && isDynamicColor)
               ? (isDark ? 'border-green-500/20' : 'border-green-500/10')
-              : isDecrease
+              : (isDecrease && isDynamicColor)
                 ? (isDark ? 'border-red-500/20' : 'border-red-500/10')
                 : (isDark ? 'border-blue-500/20' : 'border-blue-500/10');
 
@@ -75,7 +77,7 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
                 </div>
                 <div>
                   <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-slate-500'}`}>{displayTitle}</p>
-                  <p className={`text-[16px] font-bold ${isDark ? 'text-gray-200' : 'text-slate-900'}`}>{m.before} -&gt; {m.after}</p>
+                  <p className={`text-[16px] font-bold ${isDark ? 'text-gray-200' : 'text-slate-900'}`}>{m.after}</p>
                 </div>
               </div>
             );

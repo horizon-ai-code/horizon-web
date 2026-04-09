@@ -1,7 +1,7 @@
 "use client"
 
 import { Menu } from "lucide-react";
-import ThemeToggle from "@/components/theme/ThemeToggle";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -9,7 +9,7 @@ export default function Navbar() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { requestAnimationFrame(() => setMounted(true)); }, []);
 
   const isDark = mounted ? resolvedTheme === "dark" : true;
 

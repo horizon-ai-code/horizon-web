@@ -1,89 +1,44 @@
 import { create } from 'zustand';
 
-export type AppState = "idle" | "analyzing" | "done";
+// ── Import types from dedicated modules ───────────────────────────────────────
+import type { AppState, SessionData, TerminalEntry, OrchestrationResult } from '@/types/session';
+import type { ReplayStep, InsightMetric } from '@/types/insights';
+import type {
+  ConnectionIdMessage,
+  StatusMessage,
+  ResultMessage,
+  PydanticError,
+  ValidationErrorMessage,
+  MalformedJsonErrorMessage,
+  ErrorMessage,
+  ServerMessage,
+} from '@/types/websocket';
 
-export interface ReplayStep {
-  title: string;
-  description: string;
-  codeSnapshot: string;
-  issueLines: number[];
-  addedLines: number[];
-  removedLines: number[];
-}
+// ── Import constants ──────────────────────────────────────────────────────────
+import { INITIAL_SOURCE, INITIAL_REFACTORED, EMPTY_ORCHESTRATION_RESULT } from '@/lib/constants';
 
-export interface InsightMetric {
-  title: string;
-  before: string;
-  after: string;
-  direction: 'up' | 'down' | 'neutral';
-  iconKey?: string;
-}
-
-export interface OrchestrationResult {
-  replaySteps: ReplayStep[];
-  metrics: InsightMetric[];
-  summary: string;
-  diffHighlights: {
-    added: number[];
-    removed: number[];
-  };
-}
-
-export const EMPTY_ORCHESTRATION_RESULT: OrchestrationResult = {
-  replaySteps: [],
-  metrics: [],
-  summary: "",
-  diffHighlights: {
-    added: [],
-    removed: [],
-  },
+// ── Re-export everything for backward compatibility ───────────────────────────
+// Consumers that already import from '@/store/useChatStore' will continue to work.
+export type {
+  AppState,
+  SessionData,
+  TerminalEntry,
+  OrchestrationResult,
+  ReplayStep,
+  InsightMetric,
+  ConnectionIdMessage,
+  StatusMessage,
+  ResultMessage,
+  PydanticError,
+  ValidationErrorMessage,
+  MalformedJsonErrorMessage,
+  ErrorMessage,
+  ServerMessage,
 };
 
-export const INITIAL_SOURCE = `public boolean containsDuplicate(int[] nums) {
-    for (int i = 0; i < nums.length; i++) {
-        for (int j = i + 1; j < nums.length; j++) {
-            if (nums[i] == nums[j]) {
-                return true;
-            }
-        }
-    }
-    return false;
-}`;
+export { INITIAL_SOURCE, INITIAL_REFACTORED, EMPTY_ORCHESTRATION_RESULT };
 
-export const INITIAL_REFACTORED = `public boolean containsDuplicate(int[] nums) {
-    Set<Integer> seen = new HashSet<>();
-    for (int num : nums) {
-        if (!seen.add(num)) {
-            return true;
-        }
-    }
-    return false;
-}`;
-
-export interface TerminalEntry {
-  id: string;
-  type: 'command' | 'log' | 'system';
-  text: string;
-  colorClass?: string;
-  icon?: string;
-}
-
-export interface SessionData {
-  id: string;
-  title: string;
-  createdAt: number;
-  updatedAt: number;
-  sourceCode: string;
-  refactoredOutput: string;
-  activeStep: number;
-  inputInstruction: string;
-  terminalEntries: TerminalEntry[];
-  isTerminalCollapsed: boolean;
-  appState: AppState;
-  showFlowchartModal: boolean;
-  orchestrationResult: OrchestrationResult;
-  error?: string;
-}
+// ── Internal Helpers ──────────────────────────────────────────────────────────
 
 const DEFAULT_SESSION: Omit<SessionData, "id"> = {
   title: "New Session",
@@ -108,6 +63,8 @@ const getSessionTitleFromPrompt = (prompt: string) => {
   return trimmed.length > 48 ? `${trimmed.slice(0, 48)}...` : trimmed;
 };
 
+// ── Store Interface ───────────────────────────────────────────────────────────
+
 interface ChatStore {
   hasInitialLoaded: boolean;
   setHasInitialLoaded: (loaded: boolean) => void;
@@ -123,8 +80,13 @@ interface ChatStore {
   createSession: (id: string, initialData?: Partial<SessionData>) => void;
   createSessionWithInitialPrompt: (prompt: string, initialData?: Partial<SessionData>) => string;
   renameSession: (id: string, title: string) => void;
-  deleteSession: (id: string) => void;
+  deleteSession: (id: string) => Promise<void>;
+  migrateSessionId: (oldId: string, newId: string) => void;
+  fetchHistory: () => Promise<void>;
+  fetchSessionDetails: (id: string) => Promise<boolean>;
 }
+
+// ── Zustand Store ─────────────────────────────────────────────────────────────
 
 export const useChatStore = create<ChatStore>((set) => ({
   hasInitialLoaded: false,
@@ -146,6 +108,15 @@ export const useChatStore = create<ChatStore>((set) => ({
   updateSession: (id, arg) =>
     set((state) => {
       const now = Date.now();
+      
+      if (id === "draft" || !id) {
+        const data = typeof arg === "function" ? arg({ ...state.draftSession, id: "draft" } as SessionData) : arg;
+        return {
+          ...state,
+          draftSession: { ...state.draftSession, ...data, updatedAt: now },
+        };
+      }
+
       const existing = state.sessions[id] || { ...DEFAULT_SESSION, id, createdAt: now, updatedAt: now };
       const data = typeof arg === "function" ? arg(existing) : arg;
 
@@ -171,7 +142,7 @@ export const useChatStore = create<ChatStore>((set) => ({
         ...state,
         sessions: {
           ...state.sessions,
-          [id]: { ...DEFAULT_SESSION, id, createdAt: now, updatedAt: now, ...initialData },
+          [id]: { ...DEFAULT_SESSION, ...initialData, id, createdAt: now, updatedAt: now, isLoaded: true },
         },
       };
     }),
@@ -220,14 +191,180 @@ export const useChatStore = create<ChatStore>((set) => ({
       };
     }),
 
-  deleteSession: (id) =>
+  deleteSession: async (id) => {
+    try {
+      await fetch(`http://localhost:8000/api/history/${id}`, {
+        method: "DELETE",
+      });
+    } catch(e) {
+      console.error("[ChatStore] Error deleting session from backend:", e);
+    }
     set((state) => {
       if (!state.sessions[id]) return state;
 
-      const { [id]: _deleted, ...remaining } = state.sessions;
+      const remaining = { ...state.sessions };
+      delete remaining[id];
+      return { ...state, sessions: remaining };
+    });
+  },
+
+  migrateSessionId: (oldId, newId) =>
+    set((state) => {
+      if (oldId === newId) return state;
+      const oldSession = state.sessions[oldId];
+      if (!oldSession) return state;
+
+      const remaining = { ...state.sessions };
+      delete remaining[oldId];
       return {
         ...state,
-        sessions: remaining,
+        sessions: {
+          ...remaining,
+          [newId]: {
+            ...oldSession,
+            id: newId,
+          },
+        },
       };
     }),
+
+  fetchHistory: async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/history");
+      if (!res.ok) return;
+      
+      const items: Array<{ id?: string; user_instruction?: string }> = await res.json();
+      
+      set((state) => {
+        const newSessions = { ...state.sessions };
+        
+        items.forEach((item) => {
+            const id = item?.id;
+            if (!id) return;
+            
+            const instruction = item.user_instruction || "";
+            
+            if (!newSessions[id]) {
+                const title = instruction.trim().length > 0 
+                  ? (instruction.trim().length > 48 ? `${instruction.trim().slice(0, 48)}...` : instruction.trim())
+                  : "New Session";
+
+                newSessions[id] = {
+                    ...DEFAULT_SESSION,
+                    id,
+                    title,
+                    updatedAt: Date.now(), // Ensure it has a timestamp for sorting
+                };
+            }
+        });
+
+        return {
+          ...state,
+          sessions: newSessions,
+          hasInitialLoaded: true,
+        };
+      });
+    } catch (e) {
+      console.error("[ChatStore] Error fetching history:", e);
+    }
+  },
+
+  fetchSessionDetails: async (id) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/history/${id}`);
+      if (!res.ok) {
+        set((state) => ({
+           ...state,
+           sessions: {
+             ...state.sessions,
+             [id]: {
+               ...(state.sessions[id] || { ...DEFAULT_SESSION, id }),
+               error: 'not_found',
+               isLoaded: true
+             }
+           }
+        }));
+        return false;
+      }
+      
+      const detail = await res.json();
+      
+      set((state) => {
+        const existing = state.sessions[id] || { ...DEFAULT_SESSION, id };
+        
+        const ROLE_VISUALS: Record<string, { step: number; icon: string; colorClass: string }> = {
+            Planner:   { step: 1, icon: "Cpu",          colorClass: "text-[#56a8f5]" },
+            Generator: { step: 2, icon: "Layers",       colorClass: "text-[#2aacb8]" },
+            Validator: { step: 3, icon: "FileCode2",    colorClass: "text-[#00e5ff]" },
+            Judge:     { step: 4, icon: "CheckCircle2", colorClass: "text-[#27c93f]" },
+        };
+        const DEFAULT_VISUALS = { step: 1, icon: "Cpu", colorClass: "text-jb-accent" };
+        
+        const terminalEntries: TerminalEntry[] = (detail.logs || []).map((log: Record<string, unknown>, index: number) => {
+            const role = log.role as string;
+            const visuals = ROLE_VISUALS[role] || DEFAULT_VISUALS;
+            return {
+                id: log.id ? `p-${log.id}` : `p-log-${index}`,
+                type: "log",
+                text: `[${role}]: ${log.status}`,
+                icon: visuals.icon,
+                colorClass: visuals.colorClass
+            };
+        });
+
+        let activeStep = 0;
+        let appState: AppState = "idle";
+        const oResult = { ...EMPTY_ORCHESTRATION_RESULT };
+        
+        if (detail.refactored_code) {
+           activeStep = 5;
+           appState = "done";
+           oResult.summary = detail.insights || "";
+           oResult.insights = detail.insights || "";
+           if (typeof detail.complexity === "number") {
+                oResult.metrics = [{
+                    title: "Cyclomatic Complexity",
+                    before: "—",
+                    after: `${detail.complexity}`,
+                    direction: detail.complexity <= 5 ? "down" as const : "up" as const,
+                    iconKey: "CheckCircle",
+                }];
+           } else if (typeof detail.complexity === "object" && detail.complexity !== null) {
+                oResult.metrics = [];
+           }
+        } else if (detail.logs && detail.logs.length > 0) {
+           appState = "analyzing";
+           const lastLog = detail.logs[detail.logs.length - 1];
+           const visuals = ROLE_VISUALS[lastLog.role] || DEFAULT_VISUALS;
+           activeStep = visuals.step;
+        }
+        
+        const safeTitle = (detail.user_instruction || "").trim() || "Previous Session";
+
+        return {
+          ...state,
+          sessions: {
+            ...state.sessions,
+            [id]: {
+              ...existing,
+              title: safeTitle.length > 48 ? `${safeTitle.slice(0, 48)}...` : safeTitle,
+              createdAt: detail.created_at ? new Date(detail.created_at).getTime() : existing.createdAt,
+              sourceCode: detail.original_code || existing.sourceCode,
+              refactoredOutput: detail.refactored_code || existing.refactoredOutput,
+              inputInstruction: detail.user_instruction || existing.inputInstruction,
+              appState,
+              activeStep,
+              terminalEntries,
+              orchestrationResult: oResult,
+              isLoaded: true
+            }
+          }
+        };
+      });
+      return true;
+    } catch(e) {
+      console.error("[ChatStore] Error fetching session details:", e);
+      return false;
+    }
+  },
 }));
