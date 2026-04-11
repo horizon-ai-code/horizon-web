@@ -143,10 +143,11 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
       const orchestrationResult: OrchestrationResult = {
         ...EMPTY_ORCHESTRATION_RESULT,
         summary: msg.insights,
-        complexity: msg.complexity,
+        original_complexity: msg.original_complexity,
+        refactored_complexity: msg.refactored_complexity,
         insights: msg.insights,
         performance: msg.performance,
-        metrics: buildMetrics(msg.complexity, msg.performance),
+        metrics: buildMetrics(msg.original_complexity, msg.refactored_complexity, msg.performance),
       };
 
       updateSession(targetId, (prev: SessionData) => ({
@@ -370,15 +371,28 @@ export function useOrchestrationSocket(): OrchestrationContextValue {
 
 // ── Utility: Build InsightMetric[] from Backend Stats ─────────────────────────
 
-function buildMetrics(complexity: number | null, performance?: ResultMessage["performance"]) {
+function buildMetrics(
+  original_complexity: number | null,
+  refactored_complexity: number | null,
+  performance?: ResultMessage["performance"]
+) {
   const metrics = [];
 
-  if (complexity !== null) {
+  if (refactored_complexity !== null) {
     metrics.push({
       title: "Cyclomatic Complexity",
-      before: "—",
-      after: `${complexity}`,
-      direction: complexity <= 5 ? ("down" as const) : ("up" as const),
+      before: original_complexity !== null ? `${original_complexity}` : "—",
+      after: `${refactored_complexity}`,
+      direction:
+        original_complexity !== null
+          ? refactored_complexity < original_complexity
+            ? ("down" as const)
+            : refactored_complexity > original_complexity
+            ? ("up" as const)
+            : ("neutral" as const)
+          : refactored_complexity <= 5
+          ? ("down" as const)
+          : ("up" as const),
       iconKey: "CheckCircle",
     });
   }

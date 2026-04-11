@@ -321,6 +321,8 @@ export const useChatStore = create<ChatStore>((set) => ({
            appState = "done";
            oResult.summary = detail.insights || "";
            oResult.insights = detail.insights || "";
+           oResult.original_complexity = detail.original_complexity;
+           oResult.refactored_complexity = detail.refactored_complexity;
            oResult.performance = {
                 avg_gpu_utilization: detail.avg_gpu_utilization || 0,
                 avg_gpu_memory: detail.avg_gpu_memory || 0,
@@ -329,12 +331,16 @@ export const useChatStore = create<ChatStore>((set) => ({
            };
 
            oResult.metrics = [];
-           if (typeof detail.complexity === "number") {
+           if (typeof detail.refactored_complexity === "number") {
+                const orig = detail.original_complexity;
+                const ref = detail.refactored_complexity;
                 oResult.metrics.push({
                     title: "Cyclomatic Complexity",
-                    before: "—",
-                    after: `${detail.complexity}`,
-                    direction: detail.complexity <= 5 ? "down" as const : "up" as const,
+                    before: typeof orig === "number" ? `${orig}` : "—",
+                    after: `${ref}`,
+                    direction: typeof orig === "number" 
+                        ? (ref < orig ? "down" as const : (ref > orig ? "up" as const : "neutral" as const))
+                        : (ref <= 5 ? "down" as const : "up" as const),
                     iconKey: "CheckCircle",
                 });
            }

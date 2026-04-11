@@ -84,7 +84,14 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
                 </div>
                 <div>
                   <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-slate-500'}`}>{displayTitle}</p>
-                  <p className={`text-[16px] font-bold ${isDark ? 'text-gray-200' : 'text-slate-900'}`}>{m.after}</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className={`text-[16px] font-bold ${isDark ? 'text-gray-200' : 'text-slate-900'}`}>{m.after}</p>
+                    {m.before && m.before !== '—' && (
+                      <p className={`text-[12px] font-medium line-through opacity-50 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                        {m.before}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             );

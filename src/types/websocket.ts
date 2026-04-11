@@ -27,7 +27,8 @@ export interface ResultMessage {
   type: "result";
   id: string;
   code: string;
-  complexity: number | null;
+  original_complexity: number | null;
+  refactored_complexity: number | null;
   insights: string;
   performance?: PerformanceMetrics;
 }
