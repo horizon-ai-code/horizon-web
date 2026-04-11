@@ -138,11 +138,22 @@ export const useChatStore = create<ChatStore>((set) => ({
       if (state.sessions[id]) return state;
 
       const now = Date.now();
+      const instruction = initialData?.inputInstruction || "";
+      const derivedTitle = instruction ? getSessionTitleFromPrompt(instruction) : "New Session";
+
       return {
         ...state,
         sessions: {
           ...state.sessions,
-          [id]: { ...DEFAULT_SESSION, ...initialData, id, createdAt: now, updatedAt: now, isLoaded: true },
+          [id]: { 
+            ...DEFAULT_SESSION, 
+            ...initialData, 
+            title: derivedTitle,
+            id, 
+            createdAt: now, 
+            updatedAt: now, 
+            isLoaded: true 
+          },
         },
       };
     }),

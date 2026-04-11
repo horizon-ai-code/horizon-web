@@ -121,7 +121,9 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
 
         return {
           appState,
-          activeStep: Math.max(prev.activeStep, visuals.step),
+          activeStep: msg.role === "System" 
+            ? Math.max(prev.activeStep, visuals.step) 
+            : visuals.step,
           terminalEntries: [...prev.terminalEntries, entry],
         };
       });
