@@ -321,18 +321,48 @@ export const useChatStore = create<ChatStore>((set) => ({
            appState = "done";
            oResult.summary = detail.insights || "";
            oResult.insights = detail.insights || "";
+           oResult.performance = {
+                avg_gpu_utilization: detail.avg_gpu_utilization || 0,
+                avg_gpu_memory: detail.avg_gpu_memory || 0,
+                inference_time: detail.inference_time || 0
+           };
+
+           oResult.metrics = [];
            if (typeof detail.complexity === "number") {
-                oResult.metrics = [{
+                oResult.metrics.push({
                     title: "Cyclomatic Complexity",
                     before: "—",
                     after: `${detail.complexity}`,
                     direction: detail.complexity <= 5 ? "down" as const : "up" as const,
                     iconKey: "CheckCircle",
-                }];
-           } else if (typeof detail.complexity === "object" && detail.complexity !== null) {
-                oResult.metrics = [];
+                });
            }
-        } else if (detail.logs && detail.logs.length > 0) {
+
+           if (detail.avg_gpu_utilization !== undefined) {
+                oResult.metrics.push({
+                    title: "Inference Time",
+                    before: "—",
+                    after: `${detail.inference_time}s`,
+                    direction: "neutral" as const,
+                    iconKey: "Clock",
+                });
+                oResult.metrics.push({
+                    title: "Avg GPU Utilization",
+                    before: "—",
+                    after: `${detail.avg_gpu_utilization}%`,
+                    direction: "neutral" as const,
+                    iconKey: "Cpu",
+                });
+                oResult.metrics.push({
+                    title: "Avg GPU Memory",
+                    before: "—",
+                    after: `${detail.avg_gpu_memory}%`,
+                    direction: "neutral" as const,
+                    iconKey: "Layers",
+                });
+           }
+        }
+ else if (detail.logs && detail.logs.length > 0) {
            appState = "analyzing";
            const lastLog = detail.logs[detail.logs.length - 1];
            const visuals = ROLE_VISUALS[lastLog.role] || DEFAULT_VISUALS;

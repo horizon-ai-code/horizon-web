@@ -1,5 +1,6 @@
 
 import type { ReplayStep, InsightMetric } from "./insights";
+import type { PerformanceMetrics } from "./websocket";
 
 export type AppState = "idle" | "analyzing" | "waiting" | "done";
 
@@ -21,6 +22,7 @@ export interface OrchestrationResult {
   };
   complexity?: number | null;
   insights?: string;
+  performance?: PerformanceMetrics;
 }
 
 export interface SessionData {

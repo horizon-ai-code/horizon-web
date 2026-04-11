@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
-import { Sparkles, Layers, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Sparkles, Layers, CheckCircle, TrendingUp, TrendingDown, Clock, Cpu } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { InsightMetric } from '@/types/insights';
 
@@ -15,6 +15,8 @@ const metricIconMap: Record<string, LucideIcon> = {
   Sparkles,
   Layers,
   CheckCircle,
+  Clock,
+  Cpu,
 };
 
 export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) {
@@ -47,30 +49,35 @@ export default function InsightsPanel({ metrics, summary }: InsightsPanelProps) 
       <div className="grid grid-cols-2 gap-4">
         {metrics.map((m, i) => (
           (() => {
-            const displayTitle = m.title === 'Loop Complexity' ? 'Cyclomatic Complexity' : m.title;
+            const displayTitle = m.title;
             const MetricIcon = (m.iconKey && metricIconMap[m.iconKey]) || Sparkles;
             const isIncrease = m.direction === 'up';
             const isDecrease = m.direction === 'down';
-            const isDynamicColor = displayTitle !== 'Cyclomatic Complexity';
+            
+            const isComplexity = displayTitle === 'Cyclomatic Complexity';
+            const isPerformance = ['Inference Time', 'Avg GPU Utilization', 'Avg GPU Memory'].includes(displayTitle);
+            
+            // Performance metrics are neutral (grey), Complexity is always blue, others are dynamic.
+            const color = isPerformance
+              ? (isDark ? 'text-gray-400' : 'text-slate-500')
+              : isComplexity
+                ? (isDark ? 'text-blue-400' : 'text-blue-600')
+                : (isIncrease ? (isDark ? 'text-green-400' : 'text-green-600') : (isDecrease ? (isDark ? 'text-red-400' : 'text-red-600') : (isDark ? 'text-blue-400' : 'text-blue-600')));
 
-            const color = (isIncrease && isDynamicColor)
-              ? (isDark ? 'text-green-400' : 'text-green-600')
-              : (isDecrease && isDynamicColor)
-                ? (isDark ? 'text-red-400' : 'text-red-600')
-                : (isDark ? 'text-blue-400' : 'text-blue-600');
-            const bg = (isIncrease && isDynamicColor)
-              ? (isDark ? 'bg-green-500/10' : 'bg-green-500/5')
-              : (isDecrease && isDynamicColor)
-                ? (isDark ? 'bg-red-500/10' : 'bg-red-500/5')
-                : (isDark ? 'bg-blue-500/10' : 'bg-blue-500/5');
-            const border = (isIncrease && isDynamicColor)
-              ? (isDark ? 'border-green-500/20' : 'border-green-500/10')
-              : (isDecrease && isDynamicColor)
-                ? (isDark ? 'border-red-500/20' : 'border-red-500/10')
-                : (isDark ? 'border-blue-500/20' : 'border-blue-500/10');
+            const bg = isPerformance
+              ? (isDark ? 'bg-gray-500/10' : 'bg-gray-500/5')
+              : isComplexity
+                ? (isDark ? 'bg-blue-500/10' : 'bg-blue-500/5')
+                : (isIncrease ? (isDark ? 'bg-green-500/10' : 'bg-green-500/5') : (isDecrease ? (isDark ? 'bg-red-500/10' : 'bg-red-500/5') : (isDark ? 'bg-blue-500/10' : 'bg-blue-500/5')));
+
+            const border = isPerformance
+              ? (isDark ? 'border-gray-500/20' : 'border-gray-500/10')
+              : isComplexity
+                ? (isDark ? 'border-blue-500/20' : 'border-blue-500/10')
+                : (isIncrease ? (isDark ? 'border-green-500/20' : 'border-green-500/10') : (isDecrease ? (isDark ? 'border-red-500/20' : 'border-red-500/10') : (isDark ? 'border-blue-500/20' : 'border-blue-500/10')));
 
             return (
-              <div key={`${m.title}-${i}`} className={`p-4 rounded-[16px] border ${border} ${bg} flex flex-col gap-3 group hover:scale-[1.02] transition-transform duration-300 ${i === 0 ? 'col-span-2' : ''}`}>
+              <div key={`${m.title}-${i}`} className={`p-4 rounded-[16px] border ${border} ${bg} flex flex-col gap-3 group hover:scale-[1.02] transition-transform duration-300 ${isComplexity ? 'col-span-2' : ''}`}>
                 <div className={`p-2.5 w-max rounded-[12px] border ${border} ${color} bg-background shadow-sm group-hover:scale-110 transition-transform flex items-center gap-2`}>
                   <MetricIcon size={18} />
                   {isIncrease ? <TrendingUp size={14} /> : isDecrease ? <TrendingDown size={14} /> : null}

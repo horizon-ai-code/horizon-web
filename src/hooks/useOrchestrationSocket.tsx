@@ -140,16 +140,13 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
         "text-[#27c93f]"
       );
 
-      // Build orchestration result from backend payload.
-      // metrics and replaySteps are left empty — the backend doesn't provide
-      // them in the same shape as the old mock. The insights string and
-      // complexity object are stored for the InsightsPanel.
       const orchestrationResult: OrchestrationResult = {
         ...EMPTY_ORCHESTRATION_RESULT,
         summary: msg.insights,
         complexity: msg.complexity,
         insights: msg.insights,
-        metrics: buildMetricsFromComplexity(msg.complexity),
+        performance: msg.performance,
+        metrics: buildMetrics(msg.complexity, msg.performance),
       };
 
       updateSession(targetId, (prev: SessionData) => ({
@@ -371,11 +368,9 @@ export function useOrchestrationSocket(): OrchestrationContextValue {
   return ctx;
 }
 
-// ── Utility: Build InsightMetric[] from ComplexityResult ──────────────────────
-// The backend returns a flat complexity object rather than the array of metrics
-// the old mock used. We transform it into something the InsightsPanel can render.
+// ── Utility: Build InsightMetric[] from Backend Stats ─────────────────────────
 
-function buildMetricsFromComplexity(complexity: number | null) {
+function buildMetrics(complexity: number | null, performance?: ResultMessage["performance"]) {
   const metrics = [];
 
   if (complexity !== null) {
@@ -385,6 +380,32 @@ function buildMetricsFromComplexity(complexity: number | null) {
       after: `${complexity}`,
       direction: complexity <= 5 ? ("down" as const) : ("up" as const),
       iconKey: "CheckCircle",
+    });
+  }
+
+  if (performance) {
+    metrics.push({
+      title: "Inference Time",
+      before: "—",
+      after: `${performance.inference_time}s`,
+      direction: "neutral" as const,
+      iconKey: "Clock",
+    });
+
+    metrics.push({
+      title: "Avg GPU Utilization",
+      before: "—",
+      after: `${performance.avg_gpu_utilization}%`,
+      direction: "neutral" as const,
+      iconKey: "Cpu",
+    });
+
+    metrics.push({
+      title: "Avg GPU Memory",
+      before: "—",
+      after: `${performance.avg_gpu_memory}%`,
+      direction: "neutral" as const,
+      iconKey: "Layers",
     });
   }
 
