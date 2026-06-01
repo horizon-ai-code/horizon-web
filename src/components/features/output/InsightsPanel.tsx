@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
 import { Sparkles, Layers, CheckCircle, TrendingUp, TrendingDown, Clock, Cpu } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -169,7 +169,7 @@ export default function InsightsPanel({ metrics, summary, planner_model, generat
               {summary.split(/(?:\r?\n)?\s*-\s+/).filter(p => p.trim()).map((point, index) => {
                 const trimmedPoint = point.trim();
                 return (
-                  <div key={index} className="flex gap-3 items-start">
+                  <div key={`summary-${index}-${trimmedPoint.slice(0, 20)}`} className="flex gap-3 items-start">
                     <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-cyan-500 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
                     <p className={`text-[13px] leading-relaxed ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                       {trimmedPoint}
