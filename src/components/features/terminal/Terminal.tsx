@@ -140,7 +140,7 @@ export default function Terminal({
           <div
             className={`text-[12px] font-mono mb-4 leading-relaxed shrink-0 transition-colors ${isDark ? "text-[#a8b0bd]" : "text-jb-text-muted"}`}
           >
-            Horizon AI [Version 10.0.26100]<br />
+            Welcome to Horizon AI [Version 2.0.0]<br />
             (c) Horizon Corporation. All rights reserved.
           </div>
 
