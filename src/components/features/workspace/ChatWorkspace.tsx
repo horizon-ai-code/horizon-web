@@ -210,8 +210,8 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
   const handleSourceChange = useCallback((val: string) => updateLocal({ sourceCode: val }), [updateLocal]);
   const handleInputChange = useCallback((val: string) => updateLocal({ inputInstruction: val }), [updateLocal]);
   const handleOutputChange = useCallback((val: string) => updateLocal({ refactoredOutput: val }), [updateLocal]);
-  const handleSourceErrorChange = useCallback(setLocalSourceError, [setLocalSourceError]);
-  const handleInputErrorChange = useCallback(setLocalInputError, [setLocalInputError]);
+  const handleSourceErrorChange = useCallback((val: boolean) => setLocalSourceError(val), [setLocalSourceError]);
+  const handleInputErrorChange = useCallback((val: boolean) => setLocalInputError(val), [setLocalInputError]);
   const handleFlowchartChange = useCallback((val: boolean) => updateLocal({ showFlowchartModal: val }), [updateLocal]);
   const handleTerminalCollapse = useCallback((val: boolean) => updateLocal({ isTerminalCollapsed: val }), [updateLocal]);
 

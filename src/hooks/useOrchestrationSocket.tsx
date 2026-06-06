@@ -120,14 +120,13 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
 
       const orchestrationResult: OrchestrationResult = {
         ...EMPTY_ORCHESTRATION_RESULT,
-        summary: msg.insights,
+        summary: "",
         original_complexity: msg.original_complexity,
         refactored_complexity: msg.refactored_complexity,
-        insights: msg.insights,
         performance: msg.performance,
-        planner_model: msg.planner_model,
-        generator_model: msg.generator_model,
-        judge_model: msg.judge_model,
+        planner_model: msg.planner_model ?? undefined,
+        generator_model: msg.generator_model ?? undefined,
+        judge_model: msg.judge_model ?? undefined,
         metrics: buildMetrics(msg.original_complexity, msg.refactored_complexity, msg.performance),
       };
 

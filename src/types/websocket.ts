@@ -1,4 +1,4 @@
-// ── WebSocket Contract Types (from horizon-api-docs.pdf pp. 7-8) ──────────
+// ── WebSocket Contract Types (from horizon-api-docs) ──────────────────────
 
 export interface RefactorRequest {
   code: string;
@@ -23,21 +23,59 @@ export interface PerformanceMetrics {
   inference_time: number;
 }
 
+export type ExitStatus =
+  | "SUCCESS"
+  | "ABORT_STRATEGY"
+  | "ABORT_SYNTAX"
+  | "ABORT_SEMANTIC"
+  | "PROCESSING";
+
+export interface PingMessage {
+  type: "ping";
+  id: string;
+  ts: string;
+}
+
+export interface HaltAcknowledgedMessage {
+  type: "halt_acknowledged";
+  id: string;
+}
+
+export interface InsightItem {
+  title: string;
+  details: string;
+}
+
+export interface InsightsMessage {
+  type: "insights";
+  id: string;
+  insights: InsightItem[] | string;
+}
+
 export interface ResultMessage {
   type: "result";
   id: string;
   code: string;
+  exit_status: ExitStatus;
   original_complexity: number | null;
   refactored_complexity: number | null;
-  insights: string;
-  performance?: PerformanceMetrics;
-  planner_model?: string;
-  generator_model?: string;
-  judge_model?: string;
+  performance: PerformanceMetrics;
+  planner_model: string | null;
+  generator_model: string | null;
+  judge_model: string | null;
 }
 
 export interface HaltRequest {
   type: "halt";
+}
+
+export interface PongRequest {
+  type: "pong";
+}
+
+export interface ReconnectRequest {
+  type: "reconnect";
+  session_id: string;
 }
 
 export interface PydanticError {
@@ -60,4 +98,12 @@ export interface MalformedJsonErrorMessage {
 }
 
 export type ErrorMessage = ValidationErrorMessage | MalformedJsonErrorMessage;
-export type ServerMessage = ConnectionIdMessage | StatusMessage | ResultMessage | ErrorMessage;
+
+export type ServerMessage =
+  | ConnectionIdMessage
+  | PingMessage
+  | StatusMessage
+  | ResultMessage
+  | InsightsMessage
+  | HaltAcknowledgedMessage
+  | ErrorMessage;
