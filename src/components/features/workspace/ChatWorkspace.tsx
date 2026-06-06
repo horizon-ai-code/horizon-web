@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useChatStore, INITIAL_SOURCE, EMPTY_ORCHESTRATION_RESULT } from "@/store/useChatStore";
 import type { SessionData } from "@/types/session";
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
@@ -14,7 +14,11 @@ import RefactoredOutput from "@/components/features/output/RefactoredOutput";
 import Terminal from "@/components/features/terminal/Terminal";
 
 export default function ChatWorkspace({ sessionId }: { sessionId: string | null }) {
-  const store = useChatStore();
+  const sessions = useChatStore((s) => s.sessions);
+  const draftSession = useChatStore((s) => s.draftSession);
+  const updateSession = useChatStore((s) => s.updateSession);
+  const updateDraftSession = useChatStore((s) => s.updateDraftSession);
+  const fetchSessionDetails = useChatStore((s) => s.fetchSessionDetails);
   const id = sessionId;
   const router = useRouter();
 
@@ -51,7 +55,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
     const session = useChatStore.getState().sessions[id];
     
     const fetchAndHandle = async () => {
-      const success = await store.fetchSessionDetails(id);
+      const success = await fetchSessionDetails(id);
       if (!success) {
         router.push('/');
       }
@@ -60,24 +64,25 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
     if (!session || (session.createdAt === 0 && !session.isLoaded)) {
       fetchAndHandle();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, router, store.fetchSessionDetails]);
+  }, [id, router, fetchSessionDetails]);
 
-  const activeSession = useMemo(() => {
-    if (!id) return { ...store.draftSession, id: "draft" };
-    return store.sessions[id] || {
-      id: id,
-      sourceCode: INITIAL_SOURCE,
-      refactoredOutput: "",
-      activeStep: 0,
-      inputInstruction: "",
-      terminalEntries: [],
-      isTerminalCollapsed: false,
-      appState: "idle" as const,
-      showFlowchartModal: false,
-      orchestrationResult: EMPTY_ORCHESTRATION_RESULT,
-    };
-  }, [id, store.sessions, store.draftSession]);
+  const activeSession = id
+    ? (sessions[id] ?? {
+        id,
+        sourceCode: INITIAL_SOURCE,
+        refactoredOutput: "",
+        activeStep: 0,
+        inputInstruction: "",
+        terminalEntries: [],
+        isTerminalCollapsed: false,
+        appState: "idle" as const,
+        showFlowchartModal: false,
+        orchestrationResult: EMPTY_ORCHESTRATION_RESULT,
+        title: "",
+        createdAt: 0,
+        updatedAt: 0,
+      })
+    : { ...draftSession, id: "draft" };
 
   const {
     sourceCode, refactoredOutput, activeStep, inputInstruction,
@@ -111,11 +116,11 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
 
   const updateLocal = useCallback((data: Partial<SessionData>) => {
     if (id) {
-      store.updateSession(id, data);
+      updateSession(id, data);
     } else {
-      store.updateDraftSession(data);
+      updateDraftSession(data);
     }
-  }, [id, store]);
+  }, [id, updateSession, updateDraftSession]);
 
   useEffect(() => {
     if (terminalPanelRef.current) {
@@ -202,6 +207,14 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
     });
   }, [sendHaltRequest, updateLocal]);
 
+  const handleSourceChange = useCallback((val: string) => updateLocal({ sourceCode: val }), [updateLocal]);
+  const handleInputChange = useCallback((val: string) => updateLocal({ inputInstruction: val }), [updateLocal]);
+  const handleOutputChange = useCallback((val: string) => updateLocal({ refactoredOutput: val }), [updateLocal]);
+  const handleSourceErrorChange = useCallback(setLocalSourceError, [setLocalSourceError]);
+  const handleInputErrorChange = useCallback(setLocalInputError, [setLocalInputError]);
+  const handleFlowchartChange = useCallback((val: boolean) => updateLocal({ showFlowchartModal: val }), [updateLocal]);
+  const handleTerminalCollapse = useCallback((val: boolean) => updateLocal({ isTerminalCollapsed: val }), [updateLocal]);
+
   if (!mounted) return null;
 
   return (
@@ -213,13 +226,13 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
             <InputPanel 
               sessionId={id}
               sourceCode={sourceCode} 
-              setSourceCode={(val) => updateLocal({ sourceCode: val })} 
+              setSourceCode={handleSourceChange}
               sourceError={localSourceError} 
-              setSourceError={setLocalSourceError}
+              setSourceError={handleSourceErrorChange}
               inputInstruction={inputInstruction}
-              setInputInstruction={(val) => updateLocal({ inputInstruction: val })}
+              setInputInstruction={handleInputChange}
               inputError={localInputError}
-              setInputError={setLocalInputError}
+              setInputError={handleInputErrorChange}
               validateBeforeSubmit={validateBeforeSubmit}
               startAnalysis={startAnalysis}
               stopAnalysis={stopAnalysis}
@@ -237,9 +250,9 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
             ${isDark ? 'bg-jb-panel border-[#393b40]' : 'bg-white border-[#dfdfdf]'}`}>
             <RefactoredOutput 
               refactoredOutput={refactoredOutput} 
-              setRefactoredOutput={(val) => updateLocal({ refactoredOutput: val })}
+              setRefactoredOutput={handleOutputChange}
               showFlowchartModal={showFlowchartModal} 
-              setShowFlowchartModal={(val) => updateLocal({ showFlowchartModal: val })}
+              setShowFlowchartModal={handleFlowchartChange}
               activeStep={activeStep} 
               isTerminalCollapsed={isTerminalCollapsed}
               appState={appState}
@@ -259,7 +272,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
         defaultSize={32} 
         minSize={5} 
         collapsible={true}
-        collapsedSize={40}
+        collapsedSize={0}
         onResize={(panelSize) => {
           const isNowCollapsed = panelSize.inPixels <= 42; 
           if (isNowCollapsed !== isTerminalCollapsed) {
@@ -272,7 +285,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
       >
         <Terminal 
           isTerminalCollapsed={isTerminalCollapsed} 
-          setIsTerminalCollapsed={(val) => updateLocal({ isTerminalCollapsed: val })}
+          setIsTerminalCollapsed={handleTerminalCollapse}
           terminalEndRef={terminalEndRef} 
           terminalEntries={terminalEntries}
           appState={appState}
