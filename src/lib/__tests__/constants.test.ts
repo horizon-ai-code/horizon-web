@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   INITIAL_SOURCE,
-  INITIAL_REFACTORED,
   EMPTY_ORCHESTRATION_RESULT,
   ROLE_VISUALS,
   DEFAULT_ROLE_VISUALS,
@@ -10,10 +9,6 @@ import {
 describe('constants', () => {
   it('INITIAL_SOURCE is empty string', () => {
     expect(INITIAL_SOURCE).toBe('');
-  });
-
-  it('INITIAL_REFACTORED is empty string', () => {
-    expect(INITIAL_REFACTORED).toBe('');
   });
 
   it('EMPTY_ORCHESTRATION_RESULT has expected shape', () => {

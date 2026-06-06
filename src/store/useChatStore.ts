@@ -14,8 +14,38 @@ import type {
   ServerMessage,
 } from '@/types/websocket';
 
+// ── Typed API response interfaces ──────────────────────────────────────────────
+
+interface HistoryItemResponse {
+  id?: string;
+  user_instruction?: string;
+}
+
+interface SessionDetailResponse {
+  id?: string;
+  user_instruction?: string;
+  original_code?: string;
+  refactored_code?: string;
+  logs?: Array<{
+    id?: string;
+    role?: string;
+    status?: string;
+  }>;
+  insights?: string;
+  original_complexity?: number;
+  refactored_complexity?: number;
+  planner_model?: string;
+  generator_model?: string;
+  judge_model?: string;
+  avg_gpu_utilization?: number;
+  avg_gpu_memory?: number;
+  avg_gpu_memory_used?: number;
+  inference_time?: number;
+  created_at?: string;
+}
+
 // ── Import constants ──────────────────────────────────────────────────────────
-import { INITIAL_SOURCE, INITIAL_REFACTORED, EMPTY_ORCHESTRATION_RESULT, ROLE_VISUALS, DEFAULT_ROLE_VISUALS } from '@/lib/constants';
+import { INITIAL_SOURCE, EMPTY_ORCHESTRATION_RESULT, ROLE_VISUALS, DEFAULT_ROLE_VISUALS } from '@/lib/constants';
 import { buildMetrics } from '@/lib/utils/buildMetrics';
 
 // ── Re-export everything for backward compatibility ───────────────────────────
@@ -37,7 +67,7 @@ export type {
   ServerMessage,
 };
 
-export { INITIAL_SOURCE, INITIAL_REFACTORED, EMPTY_ORCHESTRATION_RESULT };
+export { INITIAL_SOURCE, EMPTY_ORCHESTRATION_RESULT };
 
 // ── Internal Helpers ──────────────────────────────────────────────────────────
 
@@ -245,7 +275,7 @@ export const useChatStore = create<ChatStore>((set) => ({
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/history`);
       if (!res.ok) return;
       
-      const items: Array<{ id?: string; user_instruction?: string }> = await res.json();
+      const items: HistoryItemResponse[] = await res.json();
       
       set((state) => {
         const newSessions = { ...state.sessions };
@@ -299,7 +329,7 @@ export const useChatStore = create<ChatStore>((set) => ({
         return false;
       }
       
-      const detail = await res.json();
+      const detail: SessionDetailResponse = await res.json();
       
       set((state) => {
         const existing = state.sessions[id] || { ...DEFAULT_SESSION, id };
