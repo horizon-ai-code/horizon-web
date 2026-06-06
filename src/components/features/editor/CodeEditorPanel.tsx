@@ -13,15 +13,17 @@ const SyntaxHighlighter = dynamic(
   { ssr: false }
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sanitizeTheme = (theme: any) => {
-  const cleanTheme = JSON.parse(JSON.stringify(theme));
-  Object.keys(cleanTheme).forEach(key => {
-    if (cleanTheme[key].background) {
-      cleanTheme[key].backgroundColor = cleanTheme[key].background;
-      delete cleanTheme[key].background;
+type ThemeStyle = Record<string, React.CSSProperties>;
+
+const sanitizeTheme = (theme: ThemeStyle): ThemeStyle => {
+  const cleanTheme = JSON.parse(JSON.stringify(theme)) as ThemeStyle;
+  for (const key of Object.keys(cleanTheme)) {
+    const style = cleanTheme[key] as Record<string, string | undefined>;
+    if (style.background) {
+      style.backgroundColor = style.background;
+      delete style.background;
     }
-  });
+  }
   return cleanTheme;
 };
 
