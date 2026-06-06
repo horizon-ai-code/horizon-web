@@ -2,8 +2,8 @@
 
 import { useRef, useCallback, useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import type { RefactorRequest, ServerMessage, StatusMessage, ResultMessage } from "@/types/websocket";
-import type { TerminalEntry, SessionData, OrchestrationResult } from "@/types/session";
+import type { RefactorRequest, ServerMessage, StatusMessage, ResultMessage, InsightsMessage } from "@/types/websocket";
+import type { TerminalEntry, SessionData, OrchestrationResult, AppState } from "@/types/session";
 import { useChatStore } from "@/store/useChatStore";
 import { EMPTY_ORCHESTRATION_RESULT, ROLE_VISUALS, DEFAULT_ROLE_VISUALS } from "@/lib/constants";
 import { buildMetrics } from "@/lib/utils/buildMetrics";
@@ -111,16 +111,20 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
 
   const handleResult = useCallback(
     (msg: ResultMessage, targetId: string) => {
+      const isSuccess = msg.exit_status === "SUCCESS";
+
       const doneEntry = makeTerminalEntry(
         "log",
-        "[System]: Refactoring cycle complete. Output ready.",
-        "CheckCircle2",
-        "text-[#27c93f]"
+        isSuccess
+          ? "[System]: Refactoring cycle complete. Output ready."
+          : `[System]: Refactoring failed — ${msg.exit_status}. Original code preserved.`,
+        isSuccess ? "CheckCircle2" : "AlertCircle",
+        isSuccess ? "text-[#27c93f]" : "text-[#f93e3e]"
       );
 
       const orchestrationResult: OrchestrationResult = {
         ...EMPTY_ORCHESTRATION_RESULT,
-        summary: "",
+        exit_status: msg.exit_status as OrchestrationResult["exit_status"],
         original_complexity: msg.original_complexity,
         refactored_complexity: msg.refactored_complexity,
         performance: msg.performance,
@@ -131,11 +135,48 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
       };
 
       updateSession(targetId, (prev: SessionData) => ({
-        activeStep: 5,
+        activeStep: isSuccess ? 5 : 0,
         terminalEntries: [...prev.terminalEntries, doneEntry],
         refactoredOutput: msg.code,
         orchestrationResult,
-        appState: "done" as const,
+        appState: (isSuccess ? "done" : "idle") as AppState,
+        showFlowchartModal: isSuccess ? false : prev.showFlowchartModal,
+      }));
+    },
+    [updateSession]
+  );
+
+  // ── Handle incoming insights message ─────────────────────────────────────
+
+  const handleInsights = useCallback(
+    (msg: InsightsMessage, targetId: string) => {
+      const insightsStr = Array.isArray(msg.insights)
+        ? msg.insights.map((i) => `${i.title}: ${i.details}`).join("\n")
+        : msg.insights;
+
+      updateSession(targetId, (prev: SessionData) => ({
+        orchestrationResult: {
+          ...prev.orchestrationResult,
+          insights: insightsStr,
+          summary: insightsStr,
+        },
+      }));
+    },
+    [updateSession]
+  );
+
+  // ── Handle halt_acknowledged message ─────────────────────────────────────
+
+  const handleHaltAck = useCallback(
+    (targetId: string) => {
+      const entry = makeTerminalEntry(
+        "system",
+        "[System]: Halt acknowledged. Orchestration cancelled."
+      );
+
+      updateSession(targetId, (prev: SessionData) => ({
+        terminalEntries: [...prev.terminalEntries, entry],
+        appState: "idle" as AppState,
         showFlowchartModal: false,
       }));
     },
@@ -174,10 +215,14 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
 
   const handleStatusRef = useRef(handleStatus);
   const handleResultRef = useRef(handleResult);
+  const handleInsightsRef = useRef(handleInsights);
+  const handleHaltAckRef = useRef(handleHaltAck);
   const handleErrorRef = useRef(handleError);
 
   useEffect(() => { handleStatusRef.current = handleStatus; }, [handleStatus]);
   useEffect(() => { handleResultRef.current = handleResult; }, [handleResult]);
+  useEffect(() => { handleInsightsRef.current = handleInsights; }, [handleInsights]);
+  useEffect(() => { handleHaltAckRef.current = handleHaltAck; }, [handleHaltAck]);
   useEffect(() => { handleErrorRef.current = handleError; }, [handleError]);
 
   // ── Connect ──────────────────────────────────────────────────────────────
@@ -208,6 +253,19 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
       backoffRef.current = INITIAL_BACKOFF_MS;
       // Reset command tracking on fresh connection to allow re-sending if needed
       lastProcessedCommandIdRef.current = null;
+
+      // Attempt to reconnect to previous session
+      try {
+        const lastSessionId = typeof window !== "undefined"
+          ? localStorage.getItem("lastSessionId")
+          : null;
+        if (lastSessionId && sessionIdRef.current === null) {
+          sessionIdRef.current = lastSessionId;
+          ws.send(JSON.stringify({ type: "reconnect", session_id: lastSessionId }));
+        }
+      } catch (err) {
+        console.warn("[WS] Failed to send reconnect message:", err);
+      }
     };
 
     ws.onmessage = (event) => {
@@ -226,11 +284,18 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
                 });
                 store.resetDraftSession();
                 sessionIdRef.current = msg.id;
+                if (typeof window !== "undefined") localStorage.setItem("lastSessionId", msg.id);
                 router.replace(`/${msg.id}`);
             } else if (msg.id && msg.id !== targetId) {
                 migrateSessionId(targetId, msg.id);
                 sessionIdRef.current = msg.id;
+                if (typeof window !== "undefined") localStorage.setItem("lastSessionId", msg.id);
                 router.replace(`/${msg.id}`);
+            }
+            break;
+          case "ping":
+            if (wsRef.current?.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({ type: "pong" }));
             }
             break;
           case "status":
@@ -239,11 +304,17 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
           case "result":
             handleResultRef.current(msg, targetId);
             break;
+          case "insights":
+            handleInsightsRef.current(msg, targetId);
+            break;
+          case "halt_acknowledged":
+            handleHaltAckRef.current(targetId);
+            break;
           case "error":
             handleErrorRef.current(msg, targetId);
             break;
           default:
-            console.warn("[WS] Unknown message type:", msg);
+            console.warn("[WS] Unknown message type:", (msg as { type: string }).type);
         }
       } catch (err) {
         console.error("[WS] Failed to parse incoming message:", err);
