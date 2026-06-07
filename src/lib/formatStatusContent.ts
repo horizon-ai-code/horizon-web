@@ -9,6 +9,45 @@ export interface FormattedContent {
   details: string | null;
 }
 
+function flattenJson(obj: unknown, indent: number = 0): string {
+  const pad = "  ".repeat(indent);
+  const lines: string[] = [];
+
+  if (typeof obj !== "object" || obj === null) {
+    return String(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return "";
+    const items = obj.map((v) =>
+      typeof v === "object" && v !== null
+        ? JSON.stringify(v)
+        : String(v)
+    );
+    return items.join(", ");
+  }
+
+  for (const [key, val] of Object.entries(obj)) {
+    const label = key.replace(/_/g, " ");
+    if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+      const nested = flattenJson(val, indent + 1);
+      lines.push(`${pad}${label}:`);
+      if (nested) lines.push(nested);
+    } else if (Array.isArray(val)) {
+      if (val.length > 0) {
+        const items = val.map((v) =>
+          typeof v === "object" && v !== null ? JSON.stringify(v) : String(v)
+        );
+        lines.push(`${pad}${label}: ${items.join(", ")}`);
+      }
+    } else if (val !== undefined && val !== null && val !== "") {
+      lines.push(`${pad}${label}: ${val}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
 export function formatStatusContent(raw: string): FormattedContent {
   let text = raw;
   let details: string | null = null;
@@ -18,21 +57,8 @@ export function formatStatusContent(raw: string): FormattedContent {
   const parsedBlocks: string[] = [];
   text = text.replace(jsonBlockRegex, (_, json) => {
     try {
-      const parsed = JSON.parse(json.trim());
-      const lines: string[] = [];
-      for (const [key, val] of Object.entries(parsed)) {
-        const label = key.replace(/_/g, " ");
-        if (Array.isArray(val)) {
-          if (val.length > 0) {
-            lines.push(`${label}: ${val.join(", ")}`);
-          }
-        } else if (typeof val === "string" && val.length > 0) {
-          lines.push(`${label}: ${val}`);
-        } else if (val !== null && val !== undefined) {
-          lines.push(`${label}: ${val}`);
-        }
-      }
-      if (lines.length > 0) parsedBlocks.push(lines.join("\n"));
+      const formatted = flattenJson(JSON.parse(json.trim()));
+      if (formatted) parsedBlocks.push(formatted);
     } catch {
       parsedBlocks.push(json.trim());
     }
@@ -46,37 +72,13 @@ export function formatStatusContent(raw: string): FormattedContent {
   const trimmed = text.trim();
   if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
     try {
-      const parsed = JSON.parse(trimmed);
-      const lines: string[] = [];
-      let nestedDetails: string[] = [];
-      const entries = Array.isArray(parsed) ? parsed : [parsed];
-      for (const obj of entries) {
-        for (const [key, val] of Object.entries(obj)) {
-          const label = key.replace(/_/g, " ");
-          if (typeof val === "object" && val !== null && !Array.isArray(val)) {
-            const nested = JSON.stringify(val, null, 2);
-            nestedDetails.push(`${label}:\n${nested}`);
-          } else if (Array.isArray(val)) {
-            if (val.length > 0) {
-              const items = val.map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v))).join(", ");
-              lines.push(`${label}: ${items}`);
-            }
-          } else if (typeof val === "string" && val.length > 0) {
-            lines.push(`${label}: ${val}`);
-          } else if (val !== null && val !== undefined) {
-            lines.push(`${label}: ${val}`);
-          }
-        }
-      }
-      if (lines.length > 0) {
-        const joined = lines.join("\n");
-        if (nestedDetails.length > 0) {
-          details = joined + "\n\n" + nestedDetails.join("\n\n");
+      const formatted = flattenJson(JSON.parse(trimmed));
+      if (formatted) {
+        if (details) {
+          details = formatted + "\n\n" + details;
         } else {
-          details = joined;
+          details = formatted;
         }
-      } else if (nestedDetails.length > 0) {
-        details = nestedDetails.join("\n\n");
       }
       text = "";
     } catch {
