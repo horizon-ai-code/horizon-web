@@ -13,15 +13,33 @@ export function formatStatusContent(raw: string): FormattedContent {
   let text = raw;
   let details: string | null = null;
 
-  // 1. Extract ```json ... ``` blocks
+  // 1. Extract ```json ... ``` blocks and parse to readable text
   const jsonBlockRegex = /```json\s*([\s\S]*?)```/g;
-  const jsonBlocks: string[] = [];
+  const parsedBlocks: string[] = [];
   text = text.replace(jsonBlockRegex, (_, json) => {
-    jsonBlocks.push(json.trim());
+    try {
+      const parsed = JSON.parse(json.trim());
+      const lines: string[] = [];
+      for (const [key, val] of Object.entries(parsed)) {
+        const label = key.replace(/_/g, " ");
+        if (Array.isArray(val)) {
+          if (val.length > 0) {
+            lines.push(`${label}: ${val.join(", ")}`);
+          }
+        } else if (typeof val === "string" && val.length > 0) {
+          lines.push(`${label}: ${val}`);
+        } else if (val !== null && val !== undefined) {
+          lines.push(`${label}: ${val}`);
+        }
+      }
+      if (lines.length > 0) parsedBlocks.push(lines.join("\n"));
+    } catch {
+      parsedBlocks.push(json.trim());
+    }
     return "";
   });
-  if (jsonBlocks.length > 0) {
-    details = jsonBlocks.join("\n\n");
+  if (parsedBlocks.length > 0) {
+    details = parsedBlocks.join("\n\n");
   }
 
   // 2. Extract **Key:** `Value` or **Key:** Value pairs as tags (from structured content)
