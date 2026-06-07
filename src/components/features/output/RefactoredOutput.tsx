@@ -2,11 +2,11 @@
 
 import { useTheme } from "next-themes";
 import { Copy, Layers, X, FileCode2, Cpu, CheckCircle2, Loader2, Clock } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+
 import CodeEditorPanel from "@/components/features/editor/CodeEditorPanel";
 import type { AppState, OrchestrationResult } from "@/types/session";
 import type { GlassboxState } from "@/types/glassbox";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import RefactoringReplay from "@/components/features/output/RefactoringReplay";
 import InsightsPanel from "@/components/features/output/InsightsPanel";
 
@@ -22,72 +22,223 @@ interface RefactoredOutputProps {
   glassboxState?: GlassboxState;
 }
 
-type NodeStatus = 'active' | 'done' | 'waiting';
+type PhaseNodeStatus = "waiting" | "active" | "done";
 
-interface FlowNodeProps {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-  status: NodeStatus;
+interface PhaseNodeProps {
+  phaseNum: number;
+  name: string;
+  agent: string;
+  icon: React.ElementType;
+  status: PhaseNodeStatus;
   colorCode: string;
+  duration?: string;
+  detail?: string;
+  progress?: { completed: number; total: number };
 }
 
-const FlowNode = ({ icon: Icon, title, desc, status, colorCode }: FlowNodeProps) => {
-  const getColors = () => {
-    if (status === 'active') return 'bg-jb-bg ring-1 ring-jb-accent/50 shadow-[0_0_20px_rgba(53,116,240,0.15)] text-jb-accent';
-    return 'bg-jb-panel/50 ring-1 ring-jb-border text-jb-text-muted';
-  };
+function PhaseNode({ phaseNum, name, agent, icon: Icon, status, colorCode, duration, detail, progress }: PhaseNodeProps) {
+  const isActive = status === "active";
+  const isDone = status === "done";
+  const dimmed = status === "waiting";
+
   return (
-    <div className={`relative flex flex-col items-center justify-center p-3 w-32 h-32 rounded-[20px] transition-transform duration-700 ${getColors()} ${status === 'active' ? 'scale-105 z-10' : 'scale-95 z-0 opacity-60'}`}>
-      {status === 'active' && <div className="absolute inset-0 rounded-[20px] animate-ping opacity-10" style={{ backgroundColor: colorCode }}></div>}
-      <Icon size={26} className={`mb-3 ${status === 'active' ? 'animate-bounce' : ''}`} style={{ color: status !== 'waiting' ? colorCode : '' }} />
-      <h4 className="text-[11px] font-bold text-center mb-1 leading-tight tracking-wide">{title}</h4>
-      <p className="text-[9px] text-center leading-tight px-1 opacity-70 font-medium">{desc}</p>
+    <div
+      className={`relative flex flex-col items-center justify-center p-2.5 w-[108px] h-[108px] rounded-xl transition-all duration-500
+        ${isActive
+          ? "bg-jb-bg ring-2 scale-105 z-10"
+          : isDone
+          ? "bg-jb-panel/80 ring-1"
+          : "bg-jb-panel/30 ring-1 opacity-50"
+        }`}
+      style={{
+        borderColor: isActive ? `${colorCode}88` : (isDone ? `${colorCode}44` : "transparent"),
+        boxShadow: isActive ? `0 0 24px ${colorCode}22, inset 0 0 20px ${colorCode}08` : "none",
+      }}
+    >
+      {/* Phase dot */}
+      <div
+        className={`absolute -top-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full transition-all duration-500
+          ${isActive ? "animate-pulse" : ""}`}
+        style={{
+          backgroundColor: isDone ? "#27c93f" : colorCode,
+          boxShadow: isActive ? `0 0 8px ${colorCode}` : "none",
+          opacity: dimmed ? 0.4 : 1,
+        }}
+      />
+
+      {/* Agent icon */}
+      <div
+        className={`flex items-center justify-center w-8 h-8 rounded-lg mb-1 transition-all duration-500
+          ${isActive ? "scale-110" : ""}`}
+        style={{
+          backgroundColor: `${colorCode}18`,
+          color: isActive || isDone ? colorCode : "#888",
+        }}
+      >
+        <Icon size={18} strokeWidth={1.5} />
+      </div>
+
+      {/* Agent name */}
+      <span className={`text-[10px] font-bold tracking-wide leading-tight
+        ${dimmed ? "text-jb-text-muted" : (isActive ? "text-jb-text" : "text-jb-text/80")}`}>
+        {agent}
+      </span>
+
+      {/* Phase name */}
+      <span className={`text-[8px] font-medium leading-tight ${dimmed ? "text-jb-text-muted/60" : "text-jb-text-muted"}`}>
+        {name}
+      </span>
+
+      {/* Duration */}
+      {duration && (
+        <span className={`text-[8px] font-mono mt-0.5 ${isActive ? "text-jb-accent/80" : "text-jb-text-muted/60"}`}>
+          {duration}
+        </span>
+      )}
+
+      {/* Detail line (intent, verdict, etc.) */}
+      {detail && (
+        <span className="text-[8px] font-bold leading-tight mt-0.5 text-center px-1 truncate max-w-full"
+          style={{ color: isActive ? colorCode : (isDone ? "#27c93f" : "#888") }}>
+          {detail}
+        </span>
+      )}
+
+      {/* Generator progress bar */}
+      {progress && (
+        <div className="w-full px-2 mt-0.5">
+          <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: `${colorCode}22` }}>
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${Math.round((progress.completed / progress.total) * 100)}%`,
+                backgroundColor: colorCode,
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-const FlowConnector = ({ isActive }: { isActive: boolean }) => (
-  <div className="flex-1 min-h-[3px] h-[3px] shrink-0 w-4 md:w-8 relative overflow-hidden rounded-full mx-2 flex items-center">
-    <div className="absolute inset-0 bg-jb-border/50"></div>
-    <div className={`absolute h-full left-0 ${isActive ? 'w-full bg-jb-accent shadow-[0_0_10px_rgba(53,116,240,0.8)]' : 'w-0 bg-jb-accent'}`}></div>
-  </div>
-);
+function PhaseConnector({ status }: { status: "waiting" | "active" | "done" }) {
+  const isDone = status === "done" || status === "active";
+  return (
+    <div className="w-3 md:w-4 h-[2px] shrink-0 relative overflow-hidden rounded-full mx-0.5">
+      <div className="absolute inset-0 bg-jb-border/30" />
+      <div
+        className={`absolute h-full left-0 transition-all duration-700 ${isDone ? "w-full" : "w-0"}`}
+        style={{ backgroundColor: status === "active" ? "#548af7" : "#27c93f" }}
+      />
+    </div>
+  );
+}
 
-const AGENT_PHASE_MAP: Record<string, { node: number }> = {
-  Validator: { node: 1 },
-  Planner:   { node: 2 },
-  Generator: { node: 3 },
-  Judge:     { node: 4 },
-};
+const PHASES = [
+  { num: 1, name: "Baseline", agent: "Validator", icon: Cpu, colorCode: "#56a8f5" },
+  { num: 2, name: "Strategy", agent: "Planner", icon: Cpu, colorCode: "#5a8cf8" },
+  { num: 3, name: "Execution", agent: "Generator", icon: Layers, colorCode: "#3dd6c8" },
+  { num: 4, name: "Validation", agent: "Validator", icon: FileCode2, colorCode: "#e09c3b" },
+  { num: 5, name: "Audit", agent: "Judge", icon: CheckCircle2, colorCode: "#4ec97e" },
+  { num: 6, name: "Finalize", agent: "System", icon: Clock, colorCode: "#a78bfa" },
+];
 
 const OrchestrationFlowchart = ({ activeStep, glassboxState }: { activeStep: number; glassboxState?: GlassboxState }) => {
-  const currentAgent = glassboxState?.currentAgent;
-  const liveNode = currentAgent ? (AGENT_PHASE_MAP[currentAgent]?.node ?? activeStep) : activeStep;
-  const strategyIter = glassboxState?.strategyIteration ?? 1;
+  const gs = glassboxState;
+  const currentPhase = gs?.currentPhase ?? 0;
+  const currentAgent = gs?.currentAgent;
+  const strategyIter = gs?.strategyIteration ?? 1;
   const hasRetry = strategyIter > 1;
+  const phaseDurations = gs?.phaseDurations ?? [];
+
+  const getDuration = (phaseNum: number): string | undefined => {
+    const entry = phaseDurations.find((d) => d.phase === phaseNum);
+    return entry ? `${(entry.durationMs / 1000).toFixed(1)}s` : undefined;
+  };
+
+  const getDetail = (phaseNum: number): string | undefined => {
+    if (!gs?.currentDetail) return undefined;
+    const cd = gs.currentDetail;
+    switch (phaseNum) {
+      case 2: return cd.intent?.intent;
+      case 3: return cd.generatorProgress
+        ? `${cd.generatorProgress.completed}/${cd.generatorProgress.total}`
+        : undefined;
+      case 4: return gs.validationFaultCount !== null && gs.validationFaultCount > 0
+        ? `⚠ ${gs.validationFaultCount}`
+        : undefined;
+      case 5: return gs.judgeDecision ?? undefined;
+      default: return undefined;
+    }
+  };
+
+  const getStatus = (phaseNum: number): PhaseNodeStatus => {
+    if (phaseNum < currentPhase) return "done";
+    if (phaseNum === currentPhase) return "active";
+    return "waiting";
+  };
+
+  const getProgress = (phaseNum: number): { completed: number; total: number } | undefined => {
+    if (phaseNum === 3 && gs?.currentDetail?.generatorProgress) {
+      return gs.currentDetail.generatorProgress;
+    }
+    return undefined;
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full p-4 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex flex-row items-center justify-center w-full max-w-4xl relative">
+      <div className="flex flex-row items-center justify-center w-full max-w-5xl relative">
+        {/* Retry loop arrow */}
         {hasRetry && (
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-yellow-500/15 text-yellow-400 border border-yellow-500/20">
-              Strategy Iteration {strategyIter}/{glassboxState?.maxStrategyIterations ?? 3}
-            </span>
-          </div>
+          <svg
+            className="absolute -top-5 left-[22%] w-[56%] h-8 z-20 pointer-events-none"
+            viewBox="0 0 100 20"
+            fill="none"
+          >
+            <path
+              d="M 10 15 Q 50 -5 90 15"
+              stroke="#f4bf4f"
+              strokeWidth="1.5"
+              strokeDasharray="3 2"
+              fill="none"
+            />
+            <defs>
+              <marker id="retryArrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#f4bf4f" />
+              </marker>
+            </defs>
+            <path
+              d="M 10 15 Q 50 -5 90 15"
+              stroke="#f4bf4f"
+              strokeWidth="1.5"
+              fill="none"
+              markerEnd="url(#retryArrow)"
+            />
+            <text x="50" y="6" textAnchor="middle" className="text-[5px] font-bold" fill="#f4bf4f">
+              Retry {strategyIter}/{gs?.maxStrategyIterations ?? 3}
+            </text>
+          </svg>
         )}
-        <FlowNode icon={Cpu} title="Planner" desc="Analyzing architecture"
-          status={liveNode === 2 ? 'active' : activeStep > 2 ? 'done' : 'waiting'} colorCode="#56a8f5" />
-        <FlowConnector isActive={activeStep > 2} />
-        <FlowNode icon={Layers} title="Generator" desc="Drafting optimizations"
-          status={liveNode === 3 ? 'active' : activeStep > 3 ? 'done' : 'waiting'} colorCode="#2aacb8" />
-        <FlowConnector isActive={activeStep > 3} />
-        <FlowNode icon={FileCode2} title="AST Parser" desc="Structuring output"
-          status={liveNode === 4 ? 'active' : activeStep > 4 ? 'done' : 'waiting'} colorCode="#00e5ff" />
-        <FlowConnector isActive={activeStep > 4} />
-        <FlowNode icon={CheckCircle2} title="Judge" desc="Final validation"
-          status={liveNode === 5 ? 'active' : activeStep > 5 ? 'done' : 'waiting'} colorCode="#27c93f" />
+
+        {PHASES.map((p, i) => (
+          <React.Fragment key={p.num}>
+            <PhaseNode
+              phaseNum={p.num}
+              name={p.name}
+              agent={p.agent}
+              icon={p.icon}
+              status={getStatus(p.num)}
+              colorCode={p.colorCode}
+              duration={getDuration(p.num)}
+              detail={getDetail(p.num)}
+              progress={getProgress(p.num)}
+            />
+            {i < PHASES.length - 1 && (
+              <PhaseConnector status={getStatus(p.num + 1)} />
+            )}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
