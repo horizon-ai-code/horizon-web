@@ -21,10 +21,10 @@ function flattenJson(obj: unknown, indent: number = 0): string {
     if (obj.length === 0) return "";
     const items = obj.map((v) =>
       typeof v === "object" && v !== null
-        ? JSON.stringify(v)
-        : String(v)
+        ? flattenJson(v, indent)
+        : pad + String(v)
     );
-    return items.join(", ");
+    return items.join("\n");
   }
 
   for (const [key, val] of Object.entries(obj)) {
@@ -35,10 +35,16 @@ function flattenJson(obj: unknown, indent: number = 0): string {
       if (nested) lines.push(nested);
     } else if (Array.isArray(val)) {
       if (val.length > 0) {
-        const items = val.map((v) =>
-          typeof v === "object" && v !== null ? JSON.stringify(v) : String(v)
-        );
-        lines.push(`${pad}${label}: ${items.join(", ")}`);
+        const firstIsObj = typeof val[0] === "object" && val[0] !== null;
+        if (firstIsObj) {
+          lines.push(`${pad}${label}:`);
+          for (const item of val) {
+            const flat = flattenJson(item, indent + 1);
+            if (flat) lines.push(flat);
+          }
+        } else {
+          lines.push(`${pad}${label}: ${val.join(", ")}`);
+        }
       }
     } else if (val !== undefined && val !== null && val !== "") {
       lines.push(`${pad}${label}: ${val}`);
