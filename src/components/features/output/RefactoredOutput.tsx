@@ -1,7 +1,8 @@
 "use client"
 
 import { useTheme } from "next-themes";
-import { Copy, Layers, X, FileCode2, Cpu, CheckCircle2, Loader2, Clock } from "lucide-react";
+import { Copy, Layers, X, FileCode2, Cpu, CheckCircle2, Loader2, Clock, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import CodeEditorPanel from "@/components/features/editor/CodeEditorPanel";
 import type { AppState, OrchestrationResult } from "@/types/session";
@@ -22,223 +23,269 @@ interface RefactoredOutputProps {
   glassboxState?: GlassboxState;
 }
 
-type PhaseNodeStatus = "waiting" | "active" | "done";
+const PIPELINE_PHASES = [
+  { num: 1, name: "Baseline", agent: "Validator", icon: Cpu, color: "#56a8f5" },
+  { num: 2, name: "Strategy", agent: "Planner", icon: Cpu, color: "#5a8cf8" },
+  { num: 3, name: "Execution", agent: "Generator", icon: Layers, color: "#3dd6c8" },
+  { num: 4, name: "Validation", agent: "Validator", icon: FileCode2, color: "#e09c3b" },
+  { num: 5, name: "Audit", agent: "Judge", icon: CheckCircle2, color: "#4ec97e" },
+  { num: 6, name: "Finalize", agent: "System", icon: Clock, color: "#a78bfa" },
+];
 
-interface PhaseNodeProps {
-  phaseNum: number;
-  name: string;
-  agent: string;
-  icon: React.ElementType;
-  status: PhaseNodeStatus;
-  colorCode: string;
-  duration?: string;
-  detail?: string;
-  progress?: { completed: number; total: number };
+function getPhaseStatus(phaseNum: number, currentPhase: number): "done" | "active" | "waiting" {
+  if (phaseNum < currentPhase) return "done";
+  if (phaseNum === currentPhase) return "active";
+  return "waiting";
 }
 
-function PhaseNode({ phaseNum, name, agent, icon: Icon, status, colorCode, duration, detail, progress }: PhaseNodeProps) {
-  const isActive = status === "active";
-  const isDone = status === "done";
-  const dimmed = status === "waiting";
+interface PhaseDetailCardProps {
+  phase: typeof PIPELINE_PHASES[number];
+  gs: GlassboxState;
+  isDark: boolean;
+}
+
+function PhaseDetailCard({ phase, gs, isDark }: PhaseDetailCardProps) {
+  const cd = gs.currentDetail;
+  const duration = gs.phaseDurations?.find((d) => d.phase === phase.num);
+  const durationStr = duration ? `${(duration.durationMs / 1000).toFixed(1)}s` : null;
+  const bg = isDark ? "bg-[#1e1f22]" : "bg-white";
+  const border = isDark ? "border-[#393b40]" : "border-[#ddd]";
+  const muted = isDark ? "text-[#8d95a5]" : "text-[#888]";
 
   return (
-    <div
-      className={`relative flex flex-col items-center justify-center p-2.5 w-[108px] h-[108px] rounded-xl transition-all duration-500
-        ${isActive
-          ? "bg-jb-bg ring-2 scale-105 z-10"
-          : isDone
-          ? "bg-jb-panel/80 ring-1"
-          : "bg-jb-panel/30 ring-1 opacity-50"
-        }`}
-      style={{
-        borderColor: isActive ? `${colorCode}88` : (isDone ? `${colorCode}44` : "transparent"),
-        boxShadow: isActive ? `0 0 24px ${colorCode}22, inset 0 0 20px ${colorCode}08` : "none",
-      }}
-    >
-      {/* Phase dot */}
-      <div
-        className={`absolute -top-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full transition-all duration-500
-          ${isActive ? "animate-pulse" : ""}`}
-        style={{
-          backgroundColor: isDone ? "#27c93f" : colorCode,
-          boxShadow: isActive ? `0 0 8px ${colorCode}` : "none",
-          opacity: dimmed ? 0.4 : 1,
-        }}
-      />
-
-      {/* Agent icon */}
-      <div
-        className={`flex items-center justify-center w-8 h-8 rounded-lg mb-1 transition-all duration-500
-          ${isActive ? "scale-110" : ""}`}
-        style={{
-          backgroundColor: `${colorCode}18`,
-          color: isActive || isDone ? colorCode : "#888",
-        }}
-      >
-        <Icon size={18} strokeWidth={1.5} />
+    <div className={`w-full rounded-xl border ${bg} ${border} p-5 text-left`}>
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg"
+          style={{ backgroundColor: `${phase.color}18`, color: phase.color }}>
+          <phase.icon size={20} strokeWidth={1.5} />
+        </div>
+        <div>
+          <h3 className={`text-[14px] font-bold ${isDark ? "text-jb-text" : "text-[#080808]"}`}>
+            Phase {phase.num}: {phase.name}
+          </h3>
+          <span className={`text-[12px] font-medium ${muted}`}>
+            {phase.agent}{durationStr ? ` · ${durationStr}` : ""}
+          </span>
+        </div>
       </div>
 
-      {/* Agent name */}
-      <span className={`text-[10px] font-bold tracking-wide leading-tight
-        ${dimmed ? "text-jb-text-muted" : (isActive ? "text-jb-text" : "text-jb-text/80")}`}>
-        {agent}
-      </span>
-
-      {/* Phase name */}
-      <span className={`text-[8px] font-medium leading-tight ${dimmed ? "text-jb-text-muted/60" : "text-jb-text-muted"}`}>
-        {name}
-      </span>
-
-      {/* Duration */}
-      {duration && (
-        <span className={`text-[8px] font-mono mt-0.5 ${isActive ? "text-jb-accent/80" : "text-jb-text-muted/60"}`}>
-          {duration}
-        </span>
+      {/* Phase-specific detail */}
+      {phase.num === 2 && cd?.intent && (
+        <div className="flex flex-wrap gap-2">
+          {cd.intent.category && <TagInline label="Category" value={cd.intent.category} color="#5a8cf8" isDark={isDark} />}
+          {cd.intent.intent && <TagInline label="Intent" value={cd.intent.intent} color="#3dd6c8" isDark={isDark} />}
+          {cd.intent.targetClass && <TagInline label="Class" value={cd.intent.targetClass} color="#e09c3b" isDark={isDark} />}
+          {cd.intent.targetMember && <TagInline label="Member" value={cd.intent.targetMember} color="#e09c3b" isDark={isDark} />}
+        </div>
       )}
 
-      {/* Detail line (intent, verdict, etc.) */}
-      {detail && (
-        <span className="text-[8px] font-bold leading-tight mt-0.5 text-center px-1 truncate max-w-full"
-          style={{ color: isActive ? colorCode : (isDone ? "#27c93f" : "#888") }}>
-          {detail}
-        </span>
+      {phase.num === 2 && cd?.architecture && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[12px]">
+          {cd.architecture.primaryTargets.length > 0 && (
+            <span className={muted}>Targets: {cd.architecture.primaryTargets.map(t => t.name).join(", ")}</span>
+          )}
+          {cd.architecture.newStructures.length > 0 && (
+            <span className={muted}>New: {cd.architecture.newStructures.map(t => t.name).join(", ")}</span>
+          )}
+          {cd.architecture.mustPreserve.length > 0 && (
+            <span className={muted}>Preserve: {cd.architecture.mustPreserve.map(t => t.name).join(", ")}</span>
+          )}
+        </div>
       )}
 
-      {/* Generator progress bar */}
-      {progress && (
-        <div className="w-full px-2 mt-0.5">
-          <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: `${colorCode}22` }}>
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.round((progress.completed / progress.total) * 100)}%`,
-                backgroundColor: colorCode,
-              }}
-            />
+      {phase.num === 3 && cd?.mutations && cd.mutations.length > 0 && (
+        <div>
+          {cd.generatorProgress && (
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? "#333" : "#e5e7eb" }}>
+                <div className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.round((cd.generatorProgress.completed / cd.generatorProgress.total) * 100)}%`, backgroundColor: phase.color }} />
+              </div>
+              <span className={`text-[11px] font-bold ${muted}`}>
+                {cd.generatorProgress.completed}/{cd.generatorProgress.total}
+              </span>
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            {cd.mutations.map((m, i) => {
+              const statusColor = m.status === "completed" ? "#27c93f"
+                : m.status === "in_progress" ? phase.color
+                : m.status === "retrying" ? "#f4bf4f"
+                : m.status === "failed" ? "#f93e3e"
+                : "#888";
+              const icon = m.status === "completed" ? "✅"
+                : m.status === "in_progress" ? "◉"
+                : m.status === "retrying" ? "⟳"
+                : m.status === "failed" ? "✗"
+                : "○";
+              return (
+                <div key={i} className="flex items-center gap-2 text-[12px]">
+                  <span style={{ color: statusColor }}>{icon}</span>
+                  <span className="font-bold" style={{ color: "#3dd6c8" }}>{m.action}</span>
+                  <span className={muted}>on</span>
+                  <code className={`text-[11px] ${isDark ? "text-[#56a8f5]" : "text-[#3574f0]"}`}>{m.target}</code>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
+
+      {phase.num === 4 && cd?.checks && cd.checks.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className={`text-[12px] font-bold ${muted}`}>
+            {cd.checks.filter(c => c.passed).length}/{cd.checks.length} checks passed
+            {cd.checks.some(c => !c.passed) && ` · ${cd.checks.filter(c => !c.passed).length} failed`}
+          </span>
+          {cd.checks.map((c, i) => (
+            <div key={i} className="flex items-center gap-2 text-[12px]">
+              <span style={{ color: c.passed ? "#27c93f" : "#f93e3e" }}>{c.passed ? "✅" : "✗"}</span>
+              <span className={c.passed ? "" : "font-bold"} style={{ color: c.passed ? (isDark ? "#aaa" : "#666") : "#f93e3e" }}>
+                {c.name}
+              </span>
+              {!c.passed && c.details && <span className={muted}>— {c.details}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {phase.num === 5 && gs.judgeDecision && (
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">{gs.judgeDecision === "ACCEPT" ? "✅" : "❌"}</span>
+          <span className={`text-[16px] font-bold ${gs.judgeDecision === "ACCEPT" ? "text-[#27c93f]" : "text-[#f93e3e]"}`}>
+            {gs.judgeDecision}
+          </span>
+        </div>
+      )}
+
+      {phase.num === 5 && cd?.judgeIssues && cd.judgeIssues.length > 0 && (
+        <div className="flex flex-col gap-1 mt-2">
+          {cd.judgeIssues.map((issue, i) => (
+            <div key={i} className="flex items-start gap-2 text-[12px]">
+              <AlertCircle size={12} className="mt-0.5 shrink-0 text-orange-400" />
+              <span className="font-bold text-orange-400">{issue.issueType}</span>
+              <span className={muted}>— {issue.description}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {phase.num === 1 && cd?.analysisSummary && (
+        <span className={`text-[12px] ${muted}`}>{cd.analysisSummary}</span>
+      )}
+
+      {(() => {
+        const isEmpty = !cd?.intent && !cd?.mutations && !cd?.checks && !gs.judgeDecision;
+        if (isEmpty || phase.num === 6) {
+          return <span className={`text-[12px] ${muted}`}>{cd?.phaseAction ?? "Processing..."}</span>;
+        }
+        return null;
+      })()}
     </div>
   );
 }
 
-function PhaseConnector({ status }: { status: "waiting" | "active" | "done" }) {
-  const isDone = status === "done" || status === "active";
+function TagInline({ label, value, color, isDark }: { label: string; value: string; color: string; isDark: boolean }) {
   return (
-    <div className="w-3 md:w-4 h-[2px] shrink-0 relative overflow-hidden rounded-full mx-0.5">
-      <div className="absolute inset-0 bg-jb-border/30" />
-      <div
-        className={`absolute h-full left-0 transition-all duration-700 ${isDone ? "w-full" : "w-0"}`}
-        style={{ backgroundColor: status === "active" ? "#548af7" : "#27c93f" }}
-      />
-    </div>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium border
+      ${isDark ? "bg-[#2b2d30]" : "bg-white"}`}
+      style={{ borderColor: `${color}44` }}>
+      <span className="font-bold" style={{ color }}>{label}</span>
+      <code className="text-[11px]" style={{ color: isDark ? "#56a8f5" : "#3574f0" }}>{value}</code>
+    </span>
   );
 }
-
-const PHASES = [
-  { num: 1, name: "Baseline", agent: "Validator", icon: Cpu, colorCode: "#56a8f5" },
-  { num: 2, name: "Strategy", agent: "Planner", icon: Cpu, colorCode: "#5a8cf8" },
-  { num: 3, name: "Execution", agent: "Generator", icon: Layers, colorCode: "#3dd6c8" },
-  { num: 4, name: "Validation", agent: "Validator", icon: FileCode2, colorCode: "#e09c3b" },
-  { num: 5, name: "Audit", agent: "Judge", icon: CheckCircle2, colorCode: "#4ec97e" },
-  { num: 6, name: "Finalize", agent: "System", icon: Clock, colorCode: "#a78bfa" },
-];
 
 const OrchestrationFlowchart = ({ activeStep, glassboxState }: { activeStep: number; glassboxState?: GlassboxState }) => {
   const gs = glassboxState;
   const currentPhase = gs?.currentPhase ?? 0;
-  const currentAgent = gs?.currentAgent;
   const strategyIter = gs?.strategyIteration ?? 1;
   const hasRetry = strategyIter > 1;
-  const phaseDurations = gs?.phaseDurations ?? [];
-
-  const getDuration = (phaseNum: number): string | undefined => {
-    const entry = phaseDurations.find((d) => d.phase === phaseNum);
-    return entry ? `${(entry.durationMs / 1000).toFixed(1)}s` : undefined;
-  };
-
-  const getDetail = (phaseNum: number): string | undefined => {
-    if (!gs?.currentDetail) return undefined;
-    const cd = gs.currentDetail;
-    switch (phaseNum) {
-      case 2: return cd.intent?.intent;
-      case 3: return cd.generatorProgress
-        ? `${cd.generatorProgress.completed}/${cd.generatorProgress.total}`
-        : undefined;
-      case 4: return gs.validationFaultCount !== null && gs.validationFaultCount > 0
-        ? `⚠ ${gs.validationFaultCount}`
-        : undefined;
-      case 5: return gs.judgeDecision ?? undefined;
-      default: return undefined;
-    }
-  };
-
-  const getStatus = (phaseNum: number): PhaseNodeStatus => {
-    if (phaseNum < currentPhase) return "done";
-    if (phaseNum === currentPhase) return "active";
-    return "waiting";
-  };
-
-  const getProgress = (phaseNum: number): { completed: number; total: number } | undefined => {
-    if (phaseNum === 3 && gs?.currentDetail?.generatorProgress) {
-      return gs.currentDetail.generatorProgress;
-    }
-    return undefined;
-  };
+  const activePhase = PIPELINE_PHASES.find((p) => p.num === currentPhase) ?? PIPELINE_PHASES[0];
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full p-4 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex flex-row items-center justify-center w-full max-w-5xl relative">
-        {/* Retry loop arrow */}
+    <div className="flex flex-col items-center w-full h-full p-6 animate-in fade-in zoom-in-95 duration-500">
+      {/* Top: Compact pipeline dots */}
+      <div className="flex items-center justify-center w-full max-w-2xl mb-6 relative">
         {hasRetry && (
-          <svg
-            className="absolute -top-5 left-[22%] w-[56%] h-8 z-20 pointer-events-none"
-            viewBox="0 0 100 20"
-            fill="none"
-          >
-            <path
-              d="M 10 15 Q 50 -5 90 15"
-              stroke="#f4bf4f"
-              strokeWidth="1.5"
-              strokeDasharray="3 2"
-              fill="none"
-            />
+          <svg className="absolute -top-4 left-[18%] w-[64%] h-6 z-20 pointer-events-none" viewBox="0 0 100 16" fill="none">
+            <path d="M 8 12 Q 50 -4 92 12" stroke="#f4bf4f" strokeWidth="1.2" strokeDasharray="2.5 2" fill="none"
+              markerEnd="url(#retryArrow2)" />
             <defs>
-              <marker id="retryArrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L6,3 z" fill="#f4bf4f" />
+              <marker id="retryArrow2" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                <path d="M0,0 L0,5 L5,2.5 z" fill="#f4bf4f" />
               </marker>
             </defs>
-            <path
-              d="M 10 15 Q 50 -5 90 15"
-              stroke="#f4bf4f"
-              strokeWidth="1.5"
-              fill="none"
-              markerEnd="url(#retryArrow)"
-            />
-            <text x="50" y="6" textAnchor="middle" className="text-[5px] font-bold" fill="#f4bf4f">
+            <text x="50" y="5" textAnchor="middle" className="text-[4px]" fill="#f4bf4f" fontSize="4" fontWeight="bold">
               Retry {strategyIter}/{gs?.maxStrategyIterations ?? 3}
             </text>
           </svg>
         )}
+        <div className="flex items-center gap-0 w-full">
+          {PIPELINE_PHASES.map((p, i) => {
+            const status = getPhaseStatus(p.num, currentPhase);
+            const isActive = status === "active";
+            const isDone = status === "done";
+            return (
+              <React.Fragment key={p.num}>
+                <div className="flex flex-col items-center gap-1 flex-1">
+                  <div
+                    className={`w-3 h-3 rounded-full transition-all duration-500
+                      ${isActive ? "animate-pulse" : ""}
+                      ${isDone ? "ring-2 ring-offset-2 ring-offset-jb-panel" : ""}`}
+                    style={{
+                      backgroundColor: isDone ? "#27c93f" : (isActive ? p.color : (isDark ? "#555" : "#ccc")),
+                      boxShadow: isActive ? `0 0 10px ${p.color}` : "none",
+                    }}
+                  />
+                  <span className={`text-[9px] font-bold ${isActive ? "" : (isDone ? "" : "opacity-40")}`}
+                    style={{ color: isDone ? "#27c93f" : (isActive ? p.color : (isDark ? "#888" : "#999")) }}>
+                    {p.num}
+                  </span>
+                  <span className={`text-[8px] font-medium ${isActive ? "" : "opacity-40"}`}
+                    style={{ color: isActive ? p.color : (isDark ? "#888" : "#999") }}>
+                    {p.name}
+                  </span>
+                </div>
+                {i < PIPELINE_PHASES.length - 1 && (
+                  <div className="flex-1 h-[2px] mx-[-2px] relative overflow-hidden self-start mt-[6px]"
+                    style={{ backgroundColor: isDark ? "#333" : "#ddd" }}>
+                    <div className="absolute h-full left-0 transition-all duration-700"
+                      style={{
+                        width: getPhaseStatus(p.num + 1, currentPhase) !== "waiting" ? "100%" : "0%",
+                        backgroundColor: getPhaseStatus(p.num + 1, currentPhase) === "active" ? "#548af7" : "#27c93f",
+                      }} />
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
 
-        {PHASES.map((p, i) => (
-          <React.Fragment key={p.num}>
-            <PhaseNode
-              phaseNum={p.num}
-              name={p.name}
-              agent={p.agent}
-              icon={p.icon}
-              status={getStatus(p.num)}
-              colorCode={p.colorCode}
-              duration={getDuration(p.num)}
-              detail={getDetail(p.num)}
-              progress={getProgress(p.num)}
-            />
-            {i < PHASES.length - 1 && (
-              <PhaseConnector status={getStatus(p.num + 1)} />
-            )}
-          </React.Fragment>
-        ))}
+      {/* Bottom: Detail card for active phase */}
+      <div className="w-full max-w-2xl flex-1 flex flex-col">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activePhase.num}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+            className="flex-1"
+          >
+            <PhaseDetailCard phase={activePhase} gs={gs ?? {
+              currentPhase: 0, currentAgent: "System", strategyIteration: 1,
+              maxStrategyIterations: 3, syntaxHealAttempt: 0, maxSyntaxHealAttempts: 3,
+              sequentialMutationRetry: 0, maxSequentialMutationRetries: 3,
+              validationFaultCount: null, judgeDecision: null, currentDetail: null,
+              phaseSummaries: {}, phaseDurations: [], totalDurationMs: null,
+            } as GlassboxState} isDark={isDark} />
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
