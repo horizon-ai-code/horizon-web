@@ -348,7 +348,7 @@ export const useChatStore = create<ChatStore>((set) => ({
             return {
                 id: log.id ? `p-${log.id}` : `p-log-${index}`,
                 type: "log",
-                text: `[${role}]: ${log.status}`,
+                text: (log.content as string) || `[${role}]: ${log.status}`,
                 icon: visuals.icon,
                 colorClass: visuals.colorClass,
                 timestamp,
