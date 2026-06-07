@@ -7,13 +7,18 @@ import type { TerminalEntry, SessionData, OrchestrationResult, AppState } from "
 import { useChatStore } from "@/store/useChatStore";
 import { EMPTY_ORCHESTRATION_RESULT, ROLE_VISUALS, DEFAULT_ROLE_VISUALS } from "@/lib/constants";
 import { buildMetrics } from "@/lib/utils/buildMetrics";
-import type { GlassboxState } from "@/types/glassbox";
+import type { GlassboxState, CurrentStatusDetail } from "@/types/glassbox";
 import {
   parsePhaseNumber,
   parseStrategyIteration,
   parseRetryInfo,
   parseValidationFaults,
   parseJudgeDecision,
+  parseIntentDetail,
+  parseMutationPlan,
+  parseValidationFindings,
+  parseJudgeIssues,
+  parsePhaseAction,
 } from "@/lib/parseStatusInfo";
 
 // ── Connection Status ────────────────────────────────────────────────────────
@@ -117,6 +122,41 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
         if (faults !== null) next.validationFaultCount = faults;
         if (decision !== null) next.judgeDecision = decision;
         return next;
+      });
+
+      // Parse structured detail
+      const intent = parseIntentDetail(msg.content);
+      const mutations = parseMutationPlan(msg.content);
+      const findings = parseValidationFindings(msg.content);
+      const judgeIssues = parseJudgeIssues(msg.content);
+      const phaseAction = parsePhaseAction(msg.content);
+
+      setGlassboxState((prev) => {
+        const detail: CurrentStatusDetail = {
+          intent: intent ?? prev.currentDetail?.intent,
+          mutations: mutations ?? prev.currentDetail?.mutations,
+          findings: findings ?? prev.currentDetail?.findings,
+          judgeIssues: judgeIssues ?? prev.currentDetail?.judgeIssues,
+          totalFaults: parseValidationFaults(msg.content) ?? prev.currentDetail?.totalFaults,
+          judgeVerdict: decision ?? prev.currentDetail?.judgeVerdict,
+          phaseName: prev.currentDetail?.phaseName,
+          phaseAction: phaseAction ?? prev.currentDetail?.phaseAction,
+        };
+
+        const phaseNum = parsedPhase !== null && parsedPhase !== undefined ? parsedPhase : prev.currentPhase;
+        const phaseSummaries = { ...prev.phaseSummaries };
+        if (phaseNum > 0 && msg.content.trim()) {
+          const firstLine = msg.content.split("\n")[0].trim();
+          if (!phaseSummaries[phaseNum]) {
+            phaseSummaries[phaseNum] = {
+              summary: firstLine,
+              detail: { ...detail },
+              timestamp: Date.now(),
+            };
+          }
+        }
+
+        return { ...prev, currentDetail: detail, phaseSummaries };
       });
 
       const entry = makeTerminalEntry(
