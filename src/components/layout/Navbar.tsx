@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useChatStore } from "@/store/useChatStore";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const orchestratorStatus = useChatStore((s) => s.orchestratorStatus);
 
   useEffect(() => { requestAnimationFrame(() => setMounted(true)); }, []);
 
@@ -46,7 +48,27 @@ export default function Navbar() {
 
       {/* Right Section: Tools & Window Controls */}
       <div className="flex items-center h-full">
-        <div className="flex items-center px-4 h-full gap-2">
+        <div className="flex items-center px-4 h-full gap-3">
+          {/* Orchestrator Connection Status */}
+          <div className="group relative flex items-center">
+            <div className={`h-2.5 w-2.5 rounded-full transition-colors duration-300 ${
+              orchestratorStatus === "connected" ? "bg-emerald-500" :
+              orchestratorStatus === "connecting" ? "bg-amber-500 animate-pulse" :
+              "bg-red-500"
+            }`} />
+            <div className={`
+              absolute right-0 top-full mt-2 px-2.5 py-1.5 text-[11px] font-medium
+              whitespace-nowrap rounded border opacity-0 group-hover:opacity-100
+              transition-opacity pointer-events-none z-50
+              ${isDark ? 'bg-jb-panel border-jb-border/50 text-jb-text' : 'bg-white border-[#ebecf0] text-[#080808]'}
+            `}>
+              Orchestrator: {
+                orchestratorStatus === "connected" ? "Connected" :
+                orchestratorStatus === "connecting" ? "Reconnecting..." :
+                "Disconnected"
+              }
+            </div>
+          </div>
           <ThemeToggle />
         </div>
         

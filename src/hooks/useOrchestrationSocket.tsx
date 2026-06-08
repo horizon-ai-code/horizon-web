@@ -529,12 +529,14 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
     clearReconnectTimer();
     intentionalCloseRef.current = false;
     setConnectionStatus("connecting");
+    useChatStore.getState().setOrchestratorStatus("connecting");
 
     const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws");
     wsRef.current = ws;
 
     ws.onopen = () => {
       setConnectionStatus("connected");
+      useChatStore.getState().setOrchestratorStatus("connected");
       backoffRef.current = INITIAL_BACKOFF_MS;
       // Reset command tracking on fresh connection to allow re-sending if needed
       lastProcessedCommandIdRef.current = null;
@@ -677,10 +679,12 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
 
     ws.onerror = () => {
       setConnectionStatus("error");
+      useChatStore.getState().setOrchestratorStatus("error");
     };
 
     ws.onclose = () => {
       setConnectionStatus("disconnected");
+      useChatStore.getState().setOrchestratorStatus("disconnected");
       wsRef.current = null;
 
       // Auto-reconnect with exponential backoff (unless intentionally closed)
@@ -704,6 +708,7 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
       wsRef.current = null;
     }
     setConnectionStatus("disconnected");
+    useChatStore.getState().setOrchestratorStatus("disconnected");
   }, [clearReconnectTimer]);
 
   // ── Send a refactor request ──────────────────────────────────────────────

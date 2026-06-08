@@ -98,7 +98,11 @@ const getSessionTitleFromPrompt = (prompt: string) => {
 
 // ── Store Interface ───────────────────────────────────────────────────────────
 
+type OrchestratorStatus = "connected" | "connecting" | "disconnected" | "error";
+
 interface ChatStore {
+  orchestratorStatus: OrchestratorStatus;
+  setOrchestratorStatus: (status: OrchestratorStatus) => void;
   hasInitialLoaded: boolean;
   setHasInitialLoaded: (loaded: boolean) => void;
   sessions: Record<string, SessionData>;
@@ -122,6 +126,8 @@ interface ChatStore {
 // ── Zustand Store ─────────────────────────────────────────────────────────────
 
 export const useChatStore = create<ChatStore>((set) => ({
+  orchestratorStatus: "connected",
+  setOrchestratorStatus: (status) => set({ orchestratorStatus: status }),
   hasInitialLoaded: false,
   setHasInitialLoaded: (loaded) => set({ hasInitialLoaded: loaded }),
   sessions: {},
