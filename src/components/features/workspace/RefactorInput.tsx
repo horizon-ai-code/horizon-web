@@ -1,10 +1,16 @@
 "use client"
 
-import { Command, Sparkles, Square } from "lucide-react";
+import { Command, Sparkles, Square, ChevronDown } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import type { AppState } from "@/types/session";
 import { useChatStore } from "@/store/useChatStore";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const SPRING_TRANSITION = { type: "spring" as const, stiffness: 450, damping: 40 };
 
@@ -51,6 +57,7 @@ export default function RefactorInput({
   // Mapped state variables to match your branch's exact naming
   const [isChatFocused, setIsChatFocused] = useState(false);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
+  const [refactorMode, setRefactorMode] = useState<"multi" | "single">("multi");
 
   // Smooth auto-resize logic
   useEffect(() => {
@@ -77,6 +84,11 @@ export default function RefactorInput({
     if (appState === "analyzing" || appState === "waiting") return;
     if (!validateBeforeSubmit()) return;
 
+    if (refactorMode === "single") {
+      startSingleRefactor();
+      return;
+    }
+
     if (sessionId) {
       startAnalysis();
       return;
@@ -87,7 +99,7 @@ export default function RefactorInput({
     
     updateDraftSession({
       sourceCode,
-      inputInstruction, // Keep the instruction instead of clearing it
+      inputInstruction,
       terminalEntries: [
         ...draftSession.terminalEntries,
         { id: commandId, type: "command", text: initialPrompt },
@@ -142,31 +154,54 @@ export default function RefactorInput({
               <Square size={12} className="fill-current" /> Stop
             </button>
           ) : (
-            <>
-            <button 
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled}
-              className={`h-[34px] px-6 text-white rounded-full text-[13px] font-bold flex items-center gap-2 transition-all cursor-pointer 
-                ${isSubmitDisabled 
-                  ? 'opacity-40 cursor-not-allowed bg-jb-text-muted/20 text-jb-text-muted shadow-none' 
-                  : 'shadow-[0_4px_15px_rgba(53,116,240,0.25)] hover:shadow-[0_6px_20px_rgba(53,116,240,0.4)] hover:scale-105 active:scale-95 bg-jb-accent border-none'
-                }`}
-            >
-              <Sparkles size={14} className={isSubmitDisabled ? "" : "fill-current"} /> Run
-            </button>
-            <button
-              onClick={startSingleRefactor}
-              disabled={isSubmitDisabled}
-              className={`h-[34px] px-4 rounded-full text-[13px] font-bold flex items-center gap-2 transition-all cursor-pointer border
-                ${isSubmitDisabled
-                  ? 'opacity-40 cursor-not-allowed bg-jb-text-muted/10 text-jb-text-muted shadow-none border-jb-text-muted/20'
-                  : 'hover:scale-105 active:scale-95 bg-transparent text-jb-accent border-jb-accent/40 hover:border-jb-accent hover:bg-jb-accent/10'
-                }`}
-              title="Single-pass refactor with 7B model (no orchestration)"
-            >
-              Single (7B)
-            </button>
-            </>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitDisabled}
+                className={`h-[34px] px-6 text-white rounded-l-full text-[13px] font-bold flex items-center gap-2 transition-all cursor-pointer
+                  ${isSubmitDisabled
+                    ? 'opacity-40 cursor-not-allowed bg-jb-text-muted/20 text-jb-text-muted shadow-none'
+                    : 'shadow-[0_4px_15px_rgba(53,116,240,0.25)] hover:shadow-[0_6px_20px_rgba(53,116,240,0.4)] hover:scale-105 active:scale-95 bg-jb-accent border-none'
+                  }`}
+              >
+                <Sparkles size={14} className={isSubmitDisabled ? "" : "fill-current"} /> Run
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  disabled={isSubmitDisabled}
+                  className={`h-[34px] px-2 rounded-r-full text-white text-[13px] font-bold flex items-center justify-center transition-all cursor-pointer border-l border-white/20
+                    ${isSubmitDisabled
+                      ? 'opacity-40 cursor-not-allowed bg-jb-text-muted/20'
+                      : 'hover:scale-105 active:scale-95 bg-jb-accent border-none'
+                    }`}
+                  aria-label="Select mode"
+                >
+                  <ChevronDown size={14} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[160px]">
+                  <DropdownMenuItem
+                    onClick={() => setRefactorMode("multi")}
+                    className={`flex items-center gap-3 cursor-pointer ${refactorMode === "multi" ? "font-bold" : ""}`}
+                  >
+                    <div className={`h-2 w-2 rounded-full ${refactorMode === "multi" ? "bg-jb-accent" : "bg-transparent border border-jb-text-muted"}`} />
+                    <div className="flex flex-col">
+                      <span>Multi-Agent</span>
+                      <span className="text-[11px] text-jb-text-muted font-normal">Full 6-phase pipeline</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setRefactorMode("single")}
+                    className={`flex items-center gap-3 cursor-pointer ${refactorMode === "single" ? "font-bold" : ""}`}
+                  >
+                    <div className={`h-2 w-2 rounded-full ${refactorMode === "single" ? "bg-jb-accent" : "bg-transparent border border-jb-text-muted"}`} />
+                    <div className="flex flex-col">
+                      <span>Single (7B)</span>
+                      <span className="text-[11px] text-jb-text-muted font-normal">Single-pass refactor</span>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </div>
       </motion.div>

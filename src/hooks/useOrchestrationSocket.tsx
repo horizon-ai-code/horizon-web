@@ -3,7 +3,7 @@
 import { useRef, useCallback, useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type {
-  RefactorRequest, SingleRequest, ServerMessage, StatusMessage, ResultMessage, InsightsMessage,
+  RefactorRequest, ServerMessage, StatusMessage, ResultMessage, InsightsMessage,
   PhaseStartedMessage, PhaseCompletedMessage, MutationPlanMessage, MutationStatusMessage,
   ValidationResultMessage, IntentClassifiedMessage, ArchitectureAnalysisMessage,
   AuditResultMessage, GeneratorProgressMessage, PhaseTimingSummaryMessage,

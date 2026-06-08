@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import RefactorInput from '@/components/features/workspace/RefactorInput';
 
 vi.mock('@/store/useChatStore', () => ({
@@ -42,17 +42,18 @@ describe('RefactorInput', () => {
     appState: 'idle' as const,
   };
 
-  it('renders a button labelled Single (7B)', () => {
+  it('renders a Run button', () => {
     render(<RefactorInput {...defaultProps} />);
-    const button = screen.getByRole('button', { name: /single/i });
-    expect(button).toBeInTheDocument();
-    expect(button).toHaveTextContent(/7B/i);
+    expect(screen.getByRole('button', { name: /run/i })).toBeInTheDocument();
   });
 
-  it('calls startSingleRefactor when Single (7B) button is clicked', () => {
+  it('renders a mode dropdown trigger', () => {
     render(<RefactorInput {...defaultProps} />);
-    const button = screen.getByRole('button', { name: /single/i });
-    fireEvent.click(button);
-    expect(defaultProps.startSingleRefactor).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: /select mode/i })).toBeInTheDocument();
+  });
+
+  it('disables Run when source code is empty', () => {
+    render(<RefactorInput {...defaultProps} sourceCode="" />);
+    expect(screen.getByRole('button', { name: /run/i })).toBeDisabled();
   });
 });
