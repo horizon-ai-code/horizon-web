@@ -588,6 +588,13 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
                 if (typeof window !== "undefined") localStorage.setItem("lastSessionId", msg.id);
                 router.replace(`/${msg.id}`);
             } else if (msg.id && msg.id !== targetId) {
+                // If this is a new connection_id during reconnect, previous session is lost
+                const prevId = typeof window !== "undefined" ? localStorage.getItem("lastSessionId") : null;
+                if (prevId && prevId !== msg.id) {
+                  updateSession(targetId, (prev: SessionData) => ({
+                    terminalEntries: [...prev.terminalEntries, makeTerminalEntry("system", "Previous session lost. Starting new refactor session.")],
+                  }));
+                }
                 migrateSessionId(targetId, msg.id);
                 setGlassboxState({
                   currentPhase: 0,
