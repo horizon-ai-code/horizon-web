@@ -1,6 +1,7 @@
 // ── WebSocket Contract Types (from horizon-api-docs) ──────────────────────
 
 export interface RefactorRequest {
+  type: "refactor";
   code: string;
   user_instruction: string;
 }

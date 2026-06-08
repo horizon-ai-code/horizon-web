@@ -186,6 +186,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
     }
 
     sendRefactorRequest({
+      type: "refactor",
       code,
       user_instruction: instruction,
     }, commandId);
