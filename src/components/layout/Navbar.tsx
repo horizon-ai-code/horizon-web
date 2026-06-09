@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { API_URL } from "@/lib/env";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useRef } from "react";
 
@@ -12,7 +13,6 @@ export default function Navbar() {
   const timerRef = useRef<ReturnType<typeof setTimeout | typeof setInterval> | null>(null);
 
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
     const check = async () => {
       try {

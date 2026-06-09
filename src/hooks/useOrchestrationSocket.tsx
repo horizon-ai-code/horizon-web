@@ -12,6 +12,7 @@ import type { TerminalEntry, SessionData, OrchestrationResult, AppState } from "
 import { useChatStore } from "@/store/useChatStore";
 import { EMPTY_ORCHESTRATION_RESULT, ROLE_VISUALS, DEFAULT_ROLE_VISUALS } from "@/lib/constants";
 import { buildMetrics } from "@/lib/utils/buildMetrics";
+import { WS_URL } from "@/lib/env";
 import type { GlassboxState, CurrentStatusDetail } from "@/types/glassbox";
 import {
   parsePhaseNumber,
@@ -539,7 +540,7 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
     setConnectionStatus("connecting");
     useChatStore.getState().setOrchestratorStatus("connecting");
 
-    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws");
+    const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {

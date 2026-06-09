@@ -112,11 +112,11 @@ export default function Sidebar() {
     []
   );
 
-  const handleDialogConfirm = useCallback(() => {
+  const handleDialogConfirm = useCallback(async () => {
     if (!dialogSessionId) return;
 
     if (dialogAction === "delete") {
-      deleteSession(dialogSessionId);
+      await deleteSession(dialogSessionId);
       if (editingSessionId === dialogSessionId) {
         cancelInlineRename();
       }

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_URL } from '@/lib/env';
 
 // ── Import types from dedicated modules ───────────────────────────────────────
 import type { AppState, SessionData, TerminalEntry, OrchestrationResult } from '@/types/session';
@@ -19,6 +20,7 @@ import type {
 interface HistoryItemResponse {
   id?: string;
   user_instruction?: string;
+  created_at?: string;
 }
 
 interface SessionDetailResponse {
@@ -243,11 +245,16 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   deleteSession: async (id) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/history/${id}`, {
+      const res = await fetch(`${API_URL}/api/history/${id}`, {
         method: "DELETE",
       });
+      if (!res.ok) {
+        console.error(`[ChatStore] Backend returned ${res.status} on delete`);
+        return;
+      }
     } catch(e) {
       console.error("[ChatStore] Error deleting session from backend:", e);
+      return;
     }
     set((state) => {
       if (!state.sessions[id]) return state;
@@ -280,7 +287,7 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   fetchHistory: async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/history`);
+      const res = await fetch(`${API_URL}/api/history`);
       if (!res.ok) return;
       
       const items: HistoryItemResponse[] = await res.json();
@@ -295,15 +302,18 @@ export const useChatStore = create<ChatStore>((set) => ({
             const instruction = item.user_instruction || "";
             
             if (!newSessions[id]) {
-                const title = instruction.trim().length > 0 
+                const title = instruction.trim().length > 0
                   ? (instruction.trim().length > 48 ? `${instruction.trim().slice(0, 48)}...` : instruction.trim())
                   : "New Session";
+
+                const createdAt = item.created_at ? new Date(item.created_at).getTime() : Date.now();
 
                 newSessions[id] = {
                     ...DEFAULT_SESSION,
                     id,
                     title,
-                    updatedAt: Date.now(), // Ensure it has a timestamp for sorting
+                    createdAt,
+                    updatedAt: createdAt,
                 };
             }
         });
@@ -323,7 +333,7 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   fetchSessionDetails: async (id) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/history/${id}`);
+      const res = await fetch(`${API_URL}/api/history/${id}`);
       if (!res.ok) {
         const errorType = res.status === 404 ? "not_found" : res.status === 409 ? "system_busy" : "unknown";
         set((state) => ({
