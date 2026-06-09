@@ -177,7 +177,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
       updateLocal({
         terminalEntries: [
           ...currentEntries,
-          { id: crypto.randomUUID(), type: 'log' as const, text: "Failed to connect to orchestrator. Check if the backend is running.", timestamp: Date.now() },
+          { id: crypto.randomUUID(), type: 'log' as const, text: "Failed to connect to orchestrator. Check if the backend is running.", timestamp: new Date().toISOString() },
         ],
         appState: "idle" as const,
         showFlowchartModal: false,
@@ -233,7 +233,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
       updateLocal({
         terminalEntries: [
           ...currentEntries,
-          { id: crypto.randomUUID(), type: 'log' as const, text: "Failed to connect to orchestrator. Check if the backend is running.", timestamp: Date.now() },
+          { id: crypto.randomUUID(), type: 'log' as const, text: "Failed to connect to orchestrator. Check if the backend is running.", timestamp: new Date().toISOString() },
         ],
         appState: "idle" as const,
         showFlowchartModal: false,
