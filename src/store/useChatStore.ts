@@ -28,6 +28,8 @@ interface SessionDetailResponse {
   user_instruction?: string;
   original_code?: string;
   refactored_code?: string;
+  status?: string;
+  exit_status?: string;
   logs?: Array<{
     id?: string;
     role?: string;
@@ -44,6 +46,8 @@ interface SessionDetailResponse {
   avg_gpu_utilization?: number;
   avg_gpu_memory?: number;
   avg_gpu_memory_used?: number;
+  peak_gpu_utilization?: number;
+  peak_gpu_memory_used?: number;
   inference_time?: number;
   created_at?: string;
 }
@@ -377,7 +381,10 @@ export const useChatStore = create<ChatStore>((set) => ({
         let activeStep = 0;
         let appState: AppState = "idle";
         const oResult = { ...EMPTY_ORCHESTRATION_RESULT };
-        
+
+        const isHalted = detail.status === "Halted" || detail.exit_status === "ABORTED";
+        const isProcessing = detail.status === "Processing" && !detail.refactored_code && !isHalted;
+
         if (detail.refactored_code) {
            activeStep = 5;
            appState = "done";
@@ -406,21 +413,46 @@ export const useChatStore = create<ChatStore>((set) => ({
                 avg_gpu_utilization: detail.avg_gpu_utilization || 0,
                 avg_gpu_memory: detail.avg_gpu_memory || 0,
                 avg_gpu_memory_used: detail.avg_gpu_memory_used || 0,
+                peak_gpu_utilization: detail.peak_gpu_utilization ?? undefined,
+                peak_gpu_memory_used: detail.peak_gpu_memory_used ?? undefined,
                 inference_time: detail.inference_time || 0
            };
 
            oResult.metrics = buildMetrics(
               detail.original_complexity ?? null,
               detail.refactored_complexity ?? null,
-              detail.avg_gpu_utilization !== undefined ? {
+              {
                 avg_gpu_utilization: detail.avg_gpu_utilization ?? 0,
                 avg_gpu_memory: detail.avg_gpu_memory ?? 0,
                 avg_gpu_memory_used: detail.avg_gpu_memory_used ?? 0,
+                peak_gpu_utilization: detail.peak_gpu_utilization ?? undefined,
+                peak_gpu_memory_used: detail.peak_gpu_memory_used ?? undefined,
                 inference_time: detail.inference_time ?? 0,
-              } : undefined
+              }
            );
-        }
- else if (detail.logs && detail.logs.length > 0) {
+        } else if (isHalted) {
+           activeStep = 0;
+           appState = "done";
+           oResult.summary = "This refactoring was interrupted. You can start a new one.";
+           terminalEntries.push({
+             id: `p-interrupted`,
+             type: "log",
+             text: "[System]: Session was interrupted — refactoring did not complete.",
+             icon: "Monolith",
+             colorClass: "text-[#f4bf4f]",
+           });
+        } else if (isProcessing) {
+           activeStep = 0;
+           appState = "done";
+           oResult.summary = "This refactoring was interrupted. You can start a new one.";
+           terminalEntries.push({
+             id: `p-interrupted`,
+             type: "log",
+             text: "[System]: Session was interrupted — refactoring did not complete.",
+             icon: "Monolith",
+             colorClass: "text-[#f4bf4f]",
+           });
+        } else if (detail.logs && detail.logs.length > 0) {
            appState = "analyzing";
            const lastLog = detail.logs[detail.logs.length - 1];
            const visuals = ROLE_VISUALS[lastLog.role ?? ''] || DEFAULT_ROLE_VISUALS;
