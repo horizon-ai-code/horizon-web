@@ -235,7 +235,7 @@ export default function InsightsPanel({
                 className={`p-4 rounded-[16px] border ${theme.border} ${theme.bg} flex flex-col gap-3 group hover:scale-[1.02] transition-transform duration-300`}
               >
                 <div
-                  className={`p-2.5 w-max rounded-[12px] border ${theme.border} ${theme.color} bg-background shadow-sm group-hover:scale-110 transition-transform flex items-center gap-2`}
+                  className={`p-2.5 w-max mx-auto rounded-[12px] border ${theme.border} ${theme.color} bg-background shadow-sm group-hover:scale-110 transition-transform flex items-center gap-2`}
                 >
                   <MetricIcon size={18} />
                   {!isComplexity &&
@@ -246,7 +246,7 @@ export default function InsightsPanel({
                     ) : null)}
                 </div>
                 <div>
-                  <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isDark ? "text-gray-500" : "text-slate-500"}`}>
+                  <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 text-center ${isDark ? "text-gray-500" : "text-slate-500"}`}>
                     {displayTitle}
                   </p>
                   {isGpuMetric ? (
@@ -254,7 +254,7 @@ export default function InsightsPanel({
                       <div className="flex-1 flex flex-col items-center gap-1">
                         <MetricIcon size={16} className={theme.color} />
                         <span className={`text-[16px] font-bold ${theme.color}`}>{m.before}</span>
-                        <span className={`text-[10px] font-medium ${isDark ? "text-gray-400" : "text-slate-500"}`}>avg</span>
+                        <span className={`text-[12px] font-semibold ${isDark ? "text-gray-400" : "text-slate-500"}`}>avg</span>
                       </div>
                       <div className="flex flex-col justify-center">
                         <span className={`text-[18px] font-light ${isDark ? "text-gray-600" : "text-gray-300"}`}>|</span>
@@ -262,11 +262,11 @@ export default function InsightsPanel({
                       <div className="flex-1 flex flex-col items-center gap-1">
                         <MetricIcon size={16} className={theme.color} />
                         <span className={`text-[16px] font-bold ${theme.color}`}>{m.after}</span>
-                        <span className={`text-[10px] font-medium ${isDark ? "text-gray-400" : "text-slate-500"}`}>peak</span>
+                        <span className={`text-[12px] font-semibold ${isDark ? "text-gray-400" : "text-slate-500"}`}>peak</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-2 justify-center">
                       <p className={`text-[16px] font-bold ${isDark ? "text-gray-200" : "text-slate-900"}`}>
                         {isComplexity && m.before && m.before !== "—"
                           ? `${m.before} → ${m.after}`

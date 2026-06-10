@@ -149,14 +149,15 @@ export default function RefactorInput({
               <DropdownMenu>
                 <DropdownMenuTrigger
                   disabled={isSubmitDisabled}
-                  className={`h-[34px] px-2 rounded-r-full text-white text-[13px] font-bold flex items-center justify-center transition-all cursor-pointer border-l border-white/20
+                  className={`h-[34px] px-3 rounded-r-full text-white text-[12px] font-bold flex items-center gap-1.5 transition-all cursor-pointer
                     ${isSubmitDisabled
                       ? 'opacity-40 cursor-not-allowed bg-jb-text-muted/20'
                       : 'hover:scale-105 active:scale-95 bg-jb-accent border-none'
                     }`}
                   aria-label="Select mode"
                 >
-                  <ChevronDown size={14} />
+                  {refactorMode === "multi" ? "Multi-Agent" : "Single (7B)"}
+                  <ChevronDown size={12} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[160px]">
                   <DropdownMenuItem
