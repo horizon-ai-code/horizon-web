@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image";
+import Link from "next/link";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { API_URL } from "@/lib/env";
 import { useTheme } from "next-themes";
@@ -62,22 +63,23 @@ export default function Navbar() {
       
       {/* Left Section: Logo, Menu & Project Info */}
       <div className="flex items-center h-full">
-        {/* Corner Logo */}
-        <div className={`h-full px-4 flex items-center justify-center shrink-0 border-r transition-colors duration-300
-          ${isDark ? 'border-jb-border/30' : 'border-[#ebecf0]'}`}>
-           <Image 
-             src={isDark ? "/logo-dark.png" : "/logo-light.png"} 
-             alt="Logo" 
-             width={20}
-             height={20}
-             className="h-[20px] w-auto transition-opacity duration-300 opacity-90 hover:opacity-100"
-           />
-        </div>
+        <Link href="/" className="flex items-center h-full">
+          <div className={`h-full px-4 flex items-center justify-center shrink-0 border-r transition-colors duration-300
+            ${isDark ? 'border-jb-border/30' : 'border-[#ebecf0]'}`}>
+             <Image 
+               src={isDark ? "/logo-dark.png" : "/logo-light.png"} 
+               alt="Logo" 
+               width={20}
+               height={20}
+               className="h-[20px] w-auto transition-opacity duration-300 opacity-90 hover:opacity-100"
+             />
+          </div>
 
-        <button aria-label="Horizon AI" className={`h-full px-3 flex items-center gap-1.5 text-[13px] font-semibold tracking-wide transition-colors cursor-default
-          ${isDark ? 'text-jb-text hover:bg-jb-panel' : 'text-[#080808] hover:bg-[#ebecf0]'}`}>
-          Horizon AI
-        </button>
+          <span className={`h-full px-3 flex items-center gap-1.5 text-[13px] font-semibold tracking-wide transition-colors cursor-pointer
+            ${isDark ? 'text-jb-text hover:bg-jb-panel' : 'text-[#080808] hover:bg-[#ebecf0]'}`}>
+            Horizon AI
+          </span>
+        </Link>
         <button aria-label="Refactoring Studio" className={`h-full px-3 flex items-center gap-1.5 text-[13px] font-medium transition-colors cursor-default
           ${isDark ? 'text-jb-text opacity-80 hover:bg-jb-panel hover:opacity-100' : 'text-[#080808] opacity-60 hover:bg-[#ebecf0] hover:opacity-100'}`}>
           Refactoring Studio
