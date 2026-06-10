@@ -87,6 +87,7 @@ const DEFAULT_SESSION: Omit<SessionData, "id"> = {
   isTerminalCollapsed: false,
   appState: "idle",
   showFlowchartModal: false,
+  isMonolith: false,
   orchestrationResult: EMPTY_ORCHESTRATION_RESULT,
 };
 

@@ -27,7 +27,6 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
   const [mounted, setMounted] = useState(false);
   const [localSourceError, setLocalSourceError] = useState(false);
   const [localInputError, setLocalInputError] = useState(false);
-  const [isMonolith, setIsMonolith] = useState(false);
   
   const terminalPanelRef = useRef<PanelImperativeHandle | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
@@ -81,6 +80,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
         isTerminalCollapsed: false,
         appState: "idle" as const,
         showFlowchartModal: false,
+        isMonolith: false,
         orchestrationResult: EMPTY_ORCHESTRATION_RESULT,
         title: "",
         createdAt: 0,
@@ -90,7 +90,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
 
   const {
     sourceCode, refactoredOutput, activeStep, inputInstruction,
-    terminalEntries, isTerminalCollapsed, appState, showFlowchartModal, orchestrationResult
+    terminalEntries, isTerminalCollapsed, appState, showFlowchartModal, isMonolith, orchestrationResult
   } = activeSession;
 
   const validateBeforeSubmit = useCallback(() => {
@@ -148,7 +148,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
   const startAnalysis = useCallback(async () => {
     if (!validateBeforeSubmit()) return;
     if (appState === 'analyzing' || appState === 'waiting' || appState === 'done') return;
-    setIsMonolith(false);
+    updateLocal({ isMonolith: false });
 
     const instruction = inputInstruction.trim();
     const code = sourceCode.trim();
@@ -206,7 +206,7 @@ export default function ChatWorkspace({ sessionId }: { sessionId: string | null 
   const startSingleRefactor = useCallback(async () => {
     if (!validateBeforeSubmit()) return;
     if (appState === 'analyzing' || appState === 'waiting' || appState === 'done') return;
-    setIsMonolith(true);
+    updateLocal({ isMonolith: true });
 
     const instruction = inputInstruction.trim();
     const code = sourceCode.trim();

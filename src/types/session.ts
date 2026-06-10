@@ -44,6 +44,7 @@ export interface SessionData {
   isTerminalCollapsed: boolean;
   appState: AppState;
   showFlowchartModal: boolean;
+  isMonolith: boolean;
   orchestrationResult: OrchestrationResult;
   isLoaded?: boolean;
   error?: string;
