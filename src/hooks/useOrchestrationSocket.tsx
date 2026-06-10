@@ -121,7 +121,8 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
 
       // Parse glassbox data
       const parsedPhase = parsePhaseNumber(msg.content);
-      const phase = parsedPhase !== null ? parsedPhase : (msg.role === "System" ? 6 : undefined);
+      const msgPhase = (msg as any).phase;
+      const phase = parsedPhase !== null ? parsedPhase : (msgPhase !== undefined ? msgPhase : (msg.role === "System" ? 6 : undefined));
       const strategyIter = parseStrategyIteration(msg.content);
       const retry = parseRetryInfo(msg.content);
       const faults = parseValidationFaults(msg.content);

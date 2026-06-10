@@ -8,8 +8,9 @@ export interface RefactorRequest {
 
 export interface StatusMessage {
   type: "status";
-  role: "Planner" | "Generator" | "Judge" | "Validator" | "System";
+  role: "Planner" | "Generator" | "Judge" | "Validator" | "System" | "Monolith";
   content: string;
+  phase?: number;
 }
 
 export interface ConnectionIdMessage {
