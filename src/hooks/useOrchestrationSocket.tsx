@@ -519,6 +519,30 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
   useEffect(() => { handleGeneratorProgressRef.current = handleGeneratorProgress; }, [handleGeneratorProgress]);
   useEffect(() => { handlePhaseTimingSummaryRef.current = handlePhaseTimingSummary; }, [handlePhaseTimingSummary]);
 
+  const replayBufferedMessages = useCallback((targetId: string) => {
+    const buf = messageBufferRef.current;
+    messageBufferRef.current = [];
+    buf.forEach((bmsg) => {
+      switch (bmsg.type) {
+        case "status": handleStatusRef.current(bmsg, targetId); break;
+        case "result": handleResultRef.current(bmsg, targetId); break;
+        case "insights": handleInsightsRef.current(bmsg, targetId); break;
+        case "halt_acknowledged": handleHaltAckRef.current(targetId); break;
+        case "error": handleErrorRef.current(bmsg, targetId); break;
+        case "phase_started": handlePhaseStartedRef.current(bmsg); break;
+        case "phase_completed": handlePhaseCompletedRef.current(bmsg); break;
+        case "mutation_plan": handleMutationPlanRef.current(bmsg); break;
+        case "mutation_status": handleMutationStatusRef.current(bmsg); break;
+        case "validation_result": handleValidationResultRef.current(bmsg); break;
+        case "intent_classified": handleIntentClassifiedRef.current(bmsg); break;
+        case "architecture_analysis": handleArchitectureAnalysisRef.current(bmsg); break;
+        case "audit_result": handleAuditResultRef.current(bmsg); break;
+        case "generator_progress": handleGeneratorProgressRef.current(bmsg); break;
+        case "phase_timing_summary": handlePhaseTimingSummaryRef.current(bmsg); break;
+      }
+    });
+  }, []);
+
   // ── Connect ──────────────────────────────────────────────────────────────
 
   const connect = useCallback(function doConnect(targetSessionId?: string) {
@@ -603,31 +627,7 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
                   totalDurationMs: null,
                 });
                 sessionIdRef.current = msg.id;
-                // replay buffered messages
-                (() => {
-                  const buf = messageBufferRef.current;
-                  messageBufferRef.current = [];
-                  const tid = sessionIdRef.current!;
-                  buf.forEach((bmsg: ServerMessage) => {
-                    switch (bmsg.type) {
-                      case "status": handleStatusRef.current(bmsg, tid); break;
-                      case "result": handleResultRef.current(bmsg, tid); break;
-                      case "insights": handleInsightsRef.current(bmsg, tid); break;
-                      case "halt_acknowledged": handleHaltAckRef.current(tid); break;
-                      case "error": handleErrorRef.current(bmsg, tid); break;
-                      case "phase_started": handlePhaseStartedRef.current(bmsg); break;
-                      case "phase_completed": handlePhaseCompletedRef.current(bmsg); break;
-                      case "mutation_plan": handleMutationPlanRef.current(bmsg); break;
-                      case "mutation_status": handleMutationStatusRef.current(bmsg); break;
-                      case "validation_result": handleValidationResultRef.current(bmsg); break;
-                      case "intent_classified": handleIntentClassifiedRef.current(bmsg); break;
-                      case "architecture_analysis": handleArchitectureAnalysisRef.current(bmsg); break;
-                      case "audit_result": handleAuditResultRef.current(bmsg); break;
-                      case "generator_progress": handleGeneratorProgressRef.current(bmsg); break;
-                      case "phase_timing_summary": handlePhaseTimingSummaryRef.current(bmsg); break;
-                    }
-                  });
-                })();
+                replayBufferedMessages(msg.id);
                 if (typeof window !== "undefined") localStorage.setItem("lastSessionId", msg.id);
                 routerRef.current.replace(`/${msg.id}`);
             } else if (msg.id && msg.id !== targetId) {
@@ -662,31 +662,7 @@ export function OrchestrationProvider({ children }: { children: ReactNode }) {
                   totalDurationMs: null,
                 });
                 sessionIdRef.current = msg.id;
-                // replay buffered messages
-                (() => {
-                  const buf = messageBufferRef.current;
-                  messageBufferRef.current = [];
-                  const tid = sessionIdRef.current!;
-                  buf.forEach((bmsg: ServerMessage) => {
-                    switch (bmsg.type) {
-                      case "status": handleStatusRef.current(bmsg, tid); break;
-                      case "result": handleResultRef.current(bmsg, tid); break;
-                      case "insights": handleInsightsRef.current(bmsg, tid); break;
-                      case "halt_acknowledged": handleHaltAckRef.current(tid); break;
-                      case "error": handleErrorRef.current(bmsg, tid); break;
-                      case "phase_started": handlePhaseStartedRef.current(bmsg); break;
-                      case "phase_completed": handlePhaseCompletedRef.current(bmsg); break;
-                      case "mutation_plan": handleMutationPlanRef.current(bmsg); break;
-                      case "mutation_status": handleMutationStatusRef.current(bmsg); break;
-                      case "validation_result": handleValidationResultRef.current(bmsg); break;
-                      case "intent_classified": handleIntentClassifiedRef.current(bmsg); break;
-                      case "architecture_analysis": handleArchitectureAnalysisRef.current(bmsg); break;
-                      case "audit_result": handleAuditResultRef.current(bmsg); break;
-                      case "generator_progress": handleGeneratorProgressRef.current(bmsg); break;
-                      case "phase_timing_summary": handlePhaseTimingSummaryRef.current(bmsg); break;
-                    }
-                  });
-                })();
+                replayBufferedMessages(msg.id);
                 if (typeof window !== "undefined") localStorage.setItem("lastSessionId", msg.id);
                 routerRef.current.replace(`/${msg.id}`);
             }
